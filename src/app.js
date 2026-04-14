@@ -3,12 +3,16 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 
 const authRoutes = require("./routes/authRoutes");
+// routes milik user
 const userRoutes = require("./routes/userRoutes");
-const adminMoodLabelRoutes = require("./routes/admin/mood-labelRoutes");
 const userMoodLabelRoutes = require("./routes/user/mood-labelRoutes");
 const userMoodEntriesRoutes = require("./routes/user/moodEntriesRoutes");
-const googleRoutes = require('./routes/user/googleRoutes');
-const googleCalendarRoutes = require('./routes/user/googleCalendarRoutes');
+const googleRoutes = require("./routes/user/googleRoutes");
+const googleCalendarRoutes = require("./routes/user/googleCalendarRoutes");
+
+// routes milik admin
+const adminActivityLogRoutes = require("./routes/admin/activityLogRoutes");
+const adminMoodLabelRoutes = require("./routes/admin/mood-labelRoutes");
 
 const app = express();
 
@@ -30,12 +34,16 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+
+// api milik user
 app.use("/api/users", userRoutes);
-app.use("/api/admin", adminMoodLabelRoutes);
 app.use("/api/users", userMoodLabelRoutes);
 app.use("/api/users", userMoodEntriesRoutes);
-app.use('/api/google', googleRoutes);
-app.use('/api/google/calendar', googleCalendarRoutes);
+app.use("/api/google", googleRoutes);
+app.use("/api/google/calendar", googleCalendarRoutes);
 
+// api milik admin
+app.use("/api/admin", adminActivityLogRoutes);
+app.use("/api/admin", adminMoodLabelRoutes);
 
 module.exports = app;

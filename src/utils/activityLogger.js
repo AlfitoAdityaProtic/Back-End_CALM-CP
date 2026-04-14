@@ -1,14 +1,22 @@
 const prisma = require("../config/prisma");
 
-const logActivity = async ({ userId = null, action, description = null }) => {
+const logActivity = async ({
+  userId = null,
+  action,
+  description = null,
+  ipAddress = null,
+  userAgent = null,
+}) => {
   try {
     if (!action) return;
-    
+
     await prisma.activityLog.create({
       data: {
         userId,
         action,
         description,
+        ipAddress,
+        userAgent,
       },
     });
   } catch (error) {

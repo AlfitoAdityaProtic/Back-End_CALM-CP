@@ -1,0 +1,224 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum UserRole {
+  user
+  admin
+}
+
+enum AuthProvider {
+  local
+  google
+}
+
+enum AnalysisStatus {
+  pending
+  success
+  failed
+}
+
+// enum BatteryStatus {
+//   high
+//   medium
+//   low
+// }
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String   @map("user_id")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model User {
+  id              String       @id @default(uuid())
+  email           String       @unique
+  passwordHash    String?      @map("password_hash")
+  fullName        String?      @map("full_name")
+  username        String?      @unique
+  phoneNumber     String?      @map("phone_number")
+  profilePhotoUrl String?      @map("profile_photo_url")
+  authProvider    AuthProvider @default(local) @map("auth_provider")
+  role            UserRole     @default(user)
+  isEmailVerified Boolean      @default(false) @map("is_email_verified")
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
+
+  activityLogs      ActivityLog[]
+  googleAccount     GoogleAccount?
+  calendarEvents    CalendarEvent[]
+  socialBatteryLogs SocialBatteryLog[]
+  moodEntries       MoodEntry[]
+  encouragements    EncouragementResult[]
+  refreshTokens     RefreshToken[]
+
+  @@map("users")
+}
+
+model ActivityLog {
+  id          String   @id @default(uuid())
+  userId      String?  @map("user_id")
+  action      String
+  description String?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@map("activity_logs")
+}
+
+model GoogleAccount {
+  id           String    @id @default(uuid())
+  userId       String    @unique @map("user_id")
+  googleEmail  String    @map("google_email")
+  googleSub    String    @unique @map("google_sub")
+  accessToken  String?   @map("access_token")
+  refreshToken String?   @map("refresh_token")
+  tokenExpiry  DateTime? @map("token_expiry")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  calendarEvents CalendarEvent[]
+
+  @@index([userId])
+  @@map("google_accounts")
+}
+
+model CalendarEvent {
+  id              String   @id @default(uuid())
+  userId          String   @map("user_id")
+  googleAccountId String?  @map("google_account_id")
+  googleEventId   String   @map("google_event_id")
+  title           String
+  description     String?
+  location        String?
+  startTime       DateTime @map("start_time")
+  endTime         DateTime @map("end_time")
+  isAllDay        Boolean  @default(false) @map("is_all_day")
+  attendeeCount   Int?     @default(0) @map("attendee_count")
+  eventType       String?  @map("event_type")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  googleAccount GoogleAccount? @relation(fields: [googleAccountId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, googleEventId])
+  @@index([userId])
+  @@index([googleAccountId])
+  @@map("calendar_events")
+}
+
+model BatteryStatus {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  minScore    Float?   @map("min_score")
+  maxScore    Float?   @map("max_score")
+  color       String?
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  socialBatteryLogs SocialBatteryLog[]
+
+  @@map("battery_statuses")
+}
+
+model SocialBatteryLog {
+  id                   String   @id @default(uuid())
+  userId               String   @map("user_id")
+  batteryStatusId      String   @map("battery_status_id")
+  date                 DateTime
+  totalEvents          Int      @default(0) @map("total_events")
+  totalDurationMinutes Int      @default(0) @map("total_duration_minutes")
+  socialIntensityScore Float    @default(0) @map("social_intensity_score")
+  batteryScore         Float    @default(0) @map("battery_score")
+  calculationNotes     String?  @map("calculation_notes")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  batteryStatus BatteryStatus @relation(fields: [batteryStatusId], references: [id], onDelete: Restrict)
+
+  @@unique([userId, date])
+  @@index([userId])
+  @@index([batteryStatusId])
+  @@map("social_battery_logs")
+}
+
+model MoodLabel {
+  id          String  @id @default(uuid())
+  name        String  @unique
+  description String?
+  score       Int?
+  emoji       String? @db.VarChar(16)
+  paperColor  String? @map("paper_color")
+
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  moodEntries MoodEntry[]
+
+  @@map("mood_labels")
+}
+
+model MoodEntry {
+  id             String         @id @default(uuid())
+  userId         String         @map("user_id")
+  moodLabelId    String         @map("mood_label_id")
+  feelingText    String         @map("feeling_text")
+  moodScore      Int?           @map("mood_score")
+  analysisStatus AnalysisStatus @default(pending) @map("analysis_status")
+  analysisError  String?        @map("analysis_error")
+  entryDate      DateTime       @default(now()) @map("entry_date")
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
+
+  user                User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  encouragementResult EncouragementResult?
+  moodLabel           MoodLabel            @relation(fields: [moodLabelId], references: [id], onDelete: Restrict)
+
+  @@index([userId])
+  @@index([moodLabelId])
+  @@map("mood_entries")
+}
+
+model EncouragementResult {
+  id              String   @id @default(uuid())
+  userId          String   @map("user_id")
+  moodEntryId     String   @unique @map("mood_entry_id")
+  predictedLabel  String?  @map("predicted_label")
+  supportMessage  String   @map("support_message")
+  confidenceScore Float?   @map("confidence_score")
+  modelName       String?  @map("model_name")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  moodEntry MoodEntry @relation(fields: [moodEntryId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([moodEntryId])
+  @@map("encouragement_results")
+}

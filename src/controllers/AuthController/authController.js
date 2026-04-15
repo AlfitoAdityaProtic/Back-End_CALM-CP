@@ -40,11 +40,6 @@ const generateRefreshToken = () => {
   return crypto.randomBytes(64).toString("hex");
 };
 
-// const getRefreshTokenExpiryDate = () => {
-//   const expiry = new Date();
-//   expiry.setDate(expiry.getDate() + 2);
-//   return expiry;
-// };
 const getRefreshTokenExpiryDate = () => {
   const expiry = new Date();
   const refreshTokenTtl = process.env.REFRESH_TOKEN_EXPIRES_IN || "2d";
@@ -81,11 +76,6 @@ const register = async (req, res) => {
       const username = normalizeString(req.body.username)?.toLowerCase();
       const phoneNumber = normalizeString(req.body.phoneNumber);
 
-      // if (!email || !password) {
-      //   return res.status(400).json({
-      //     message: "Email dan password wajib diisi",
-      //   });
-      // }
       if (!email || !password) {
         return {
           status: 400,
@@ -95,22 +85,6 @@ const register = async (req, res) => {
         };
       }
 
-      // if (!isValidEmail(email)) {
-      //   return res.status(400).json({
-      //     message: "Format email tidak valid",
-      //   });
-      // }
-
-      // if (password.length < 8) {
-      //   return res.status(400).json({
-      //     message: "Password minimal 8 karakter",
-      //   });
-      // }
-      // if (username && !isValidUsername(username)) {
-      //   return res.status(400).json({
-      //     message: "Username hanya boleh huruf, angka, dan underscore",
-      //   });
-      // }
       if (!isValidEmail(email)) {
         return {
           status: 400,
@@ -143,11 +117,6 @@ const register = async (req, res) => {
         select: { id: true },
       });
 
-      // if (existingUserByEmail) {
-      //   return res.status(409).json({
-      //     message: "Email sudah terdaftar",
-      //   });
-      // }
       if (existingUserByEmail) {
         return {
           status: 409,
@@ -157,18 +126,6 @@ const register = async (req, res) => {
         };
       }
 
-      // if (username) {
-      //   const existingUserByUsername = await prisma.user.findUnique({
-      //     where: { username },
-      //     select: { id: true },
-      //   });
-
-      //   if (existingUserByUsername) {
-      //     return res.status(409).json({
-      //       message: "Username sudah dipakai",
-      //     });
-      //   }
-      // }
       if (username) {
         const existingUserByUsername = await prisma.user.findUnique({
           where: { username },
@@ -213,6 +170,8 @@ const register = async (req, res) => {
         userId: newUser.id,
         action: "REGISTER",
         description: `User register dengan email ${newUser.email}`,
+        ipAddress: req.ip,
+        userAgent: req.headers["user-agent"],
       });
 
       return {
@@ -252,11 +211,6 @@ const login = async (req, res) => {
       const identifier = req.body.identifier?.trim();
       const password = req.body.password;
 
-      // if (!identifier || !password) {
-      //   return res.status(400).json({
-      //     message: "Email/username dan password wajib diisi",
-      //   });
-      // }
       if (!identifier || !password) {
         return {
           status: 400,
@@ -289,12 +243,6 @@ const login = async (req, res) => {
         },
       });
 
-      // if (!user) {
-      //   return res.status(401).json({
-      //     message: "Email/username atau password salah",
-      //   });
-      // }
-
       if (!user) {
         return {
           status: 401,
@@ -302,11 +250,6 @@ const login = async (req, res) => {
         };
       }
 
-      // if (!user.passwordHash || user.authProvider === "google") {
-      //   return res.status(401).json({
-      //     message: "Akun ini terdaftar via Google. Silakan login dengan Google",
-      //   });
-      // }
       if (!user.passwordHash || user.authProvider === "google") {
         return {
           status: 401,
@@ -319,11 +262,6 @@ const login = async (req, res) => {
 
       const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
 
-      // if (!isPasswordValid) {
-      //   return res.status(401).json({
-      //     message: "Email atau password salah",
-      //   });
-      // }
       if (!isPasswordValid) {
         return {
           status: 401,
@@ -346,6 +284,8 @@ const login = async (req, res) => {
         userId: user.id,
         action: "LOGIN",
         description: `User login dengan identifier ${identifier}`,
+        ipAddress: req.ip,
+        userAgent: req.headers["user-agent"],
       });
 
       return {
@@ -359,6 +299,7 @@ const login = async (req, res) => {
             email: user.email,
             username: user.username,
             authProvider: user.authProvider,
+            role: user.role,
             createdAt: user.createdAt,
           },
         },

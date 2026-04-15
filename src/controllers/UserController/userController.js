@@ -16,6 +16,7 @@ const getUserProfile = async (req, res) => {
         profilePhotoUrl: true,
         authProvider: true,
         isEmailVerified: true,
+        role: true,
         createdAt: true,
         updatedAt: true,
       },

@@ -327,7 +327,7 @@ const login = async (req, res) => {
       if (!isPasswordValid) {
         return {
           status: 401,
-          body: { message: "Email atau password salah" },
+          body: { message: "Email/Username atau password salah" },
         };
       }
       const accessToken = generateAccessToken(user);

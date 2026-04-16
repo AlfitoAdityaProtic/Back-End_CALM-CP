@@ -91,6 +91,8 @@ const updateProfile = async (req, res) => {
       userId,
       action: "UPDATE_PROFILE",
       description: "User memperbarui profile",
+      ipAddress: req.ip,
+      userAgent: req.headers["user-agent"],
     });
 
     return res.status(200).json({

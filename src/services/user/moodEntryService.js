@@ -6,6 +6,7 @@ const createMoodEntry = async (userId, data) => {
   const moodLabelId = data.moodLabelId;
   const feelingText =
     typeof data.feelingText === "string" ? data.feelingText.trim() : "";
+  const { ipAddress = null, userAgent = null } = meta;
 
   if (!moodLabelId) {
     const error = new Error("Mood label wajib dipilih");
@@ -99,8 +100,8 @@ const createMoodEntry = async (userId, data) => {
       userId,
       action: "CREATE_MOOD_ENTRY",
       description: `User membuat mood entry dengan label ${moodLabel.name} dan feeling text "${feelingText}".`,
-      ipAddress: req.ip,
-      userAgent: req.headers["user-agent"],
+      ipAddress,
+      userAgent,
     });
 
     return {
@@ -121,8 +122,8 @@ const createMoodEntry = async (userId, data) => {
       userId,
       action: "CREATE_MOOD_ENTRY_FAILED",
       description: `Gagal memproses mood entry dengan label "${moodLabel.name}": ${err.message}`,
-      ipAddress: req.ip,
-      userAgent: req.headers["user-agent"],
+      ipAddress,
+      userAgent,
     });
 
     throw err;

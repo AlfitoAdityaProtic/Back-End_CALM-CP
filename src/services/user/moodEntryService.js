@@ -99,6 +99,8 @@ const createMoodEntry = async (userId, data) => {
       userId,
       action: "CREATE_MOOD_ENTRY",
       description: `User membuat mood entry dengan label ${moodLabel.name} dan feeling text "${feelingText}".`,
+      ipAddress: req.ip,
+      userAgent: req.headers["user-agent"],
     });
 
     return {
@@ -119,6 +121,8 @@ const createMoodEntry = async (userId, data) => {
       userId,
       action: "CREATE_MOOD_ENTRY_FAILED",
       description: `Gagal memproses mood entry dengan label "${moodLabel.name}": ${err.message}`,
+      ipAddress: req.ip,
+      userAgent: req.headers["user-agent"],
     });
 
     throw err;

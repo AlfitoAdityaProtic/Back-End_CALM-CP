@@ -384,26 +384,52 @@ const logout = async (req, res) => {
         message: "Unauthorized",
       });
     }
+
     if (!refreshToken) {
       return res.status(400).json({
         message: "Refresh token wajib diisi",
       });
     }
 
-    await prisma.refreshToken.deleteMany({
+    const existingRefreshToken = await prisma.refreshToken.findFirst({
       where: {
         token: refreshToken,
         userId: req.user.userId,
       },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            username: true,
+          },
+        },
+      },
     });
 
-    // console.log("REQ.USER LOGOUT =", req.user);
-    await logActivity({
-      userId: req.user.userId,
-      action: "LOGOUT",
-      description: `User logout dengan email ${req.user.email || "-"}`,
+    if (!existingRefreshToken) {
+      return res.status(404).json({
+        message: "Refresh token tidak ditemukan atau tidak valid",
+      });
+    }
+
+    await prisma.refreshToken.delete({
+      where: {
+        token: refreshToken,
+      },
     });
-    // console.log("LOGOUT LOG CREATED =", log);
+
+    const activityLog = await logActivity({
+      userId: existingRefreshToken.user.id,
+      action: "LOGOUT",
+      description: `User logout dengan email ${existingRefreshToken.user.email}`,
+      ipAddress: req.ip,
+      userAgent: req.headers["user-agent"],
+    });
+
+    if (!activityLog) {
+      console.warn("Logout berhasil, tetapi activity log gagal disimpan");
+    }
 
     return res.status(200).json({
       message: "Logout berhasil",
@@ -413,7 +439,6 @@ const logout = async (req, res) => {
 
     return res.status(500).json({
       message: "Terjadi kesalahan pada server",
-      // error: error.message,
     });
   }
 };

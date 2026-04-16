@@ -1,24 +1,9 @@
 const prisma = require("../../config/prisma");
 
-const getActivityLogs = async (query) => {
-  let {
-    page = 1,
-    limit = 10,
-    search = "",
-    action,
-    userId,
-    startDate,
-    endDate,
-    sortOrder = "desc",
-  } = query;
+const allowedSortFields = ["createdAt", "action"];
 
-  page = Number(page) || 1;
-  limit = Number(limit) || 10;
-
-  if (limit > 100) limit = 100;
-  if (page < 1) page = 1;
-
-  const skip = (page - 1) * limit;
+const buildActivityLogWhere = (query) => {
+  const { search = "", action, userId, startDate, endDate } = query;
 
   const where = {};
 
@@ -77,7 +62,9 @@ const getActivityLogs = async (query) => {
     where.createdAt = {};
 
     if (startDate) {
-      where.createdAt.gte = new Date(startDate);
+      const start = new Date(startDate);
+      start.setHours(0, 0, 0, 0);
+      where.createdAt.gte = start;
     }
 
     if (endDate) {
@@ -87,25 +74,55 @@ const getActivityLogs = async (query) => {
     }
   }
 
+  return where;
+};
+
+const buildActivityLogOrderBy = (query) => {
+  const { sortBy = "createdAt", order = "desc" } = query;
+
+  const safeOrder = order === "asc" ? "asc" : "desc";
+
+  if (!allowedSortFields.includes(sortBy)) {
+    return { createdAt: safeOrder };
+  }
+
+  return { [sortBy]: safeOrder };
+};
+
+const baseInclude = {
+  user: {
+    select: {
+      id: true,
+      fullName: true,
+      email: true,
+      username: true,
+      role: true,
+    },
+  },
+};
+
+const getActivityLogs = async (query) => {
+  let { page = 1, limit = 10 } = query;
+
+  page = Number(page) || 1;
+  limit = Number(limit) || 10;
+
+  if (page < 1) page = 1;
+  if (limit < 1) limit = 10;
+  if (limit > 100) limit = 100;
+
+  const skip = (page - 1) * limit;
+
+  const where = buildActivityLogWhere(query);
+  const orderBy = buildActivityLogOrderBy(query);
+
   const [logs, totalItems] = await Promise.all([
     prisma.activityLog.findMany({
       where,
       skip,
       take: limit,
-      orderBy: {
-        createdAt: sortOrder === "asc" ? "asc" : "desc",
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            fullName: true,
-            email: true,
-            username: true,
-            role: true,
-          },
-        },
-      },
+      orderBy,
+      include: baseInclude,
     }),
     prisma.activityLog.count({ where }),
   ]);
@@ -116,11 +133,26 @@ const getActivityLogs = async (query) => {
       page,
       limit,
       totalItems,
-      totalPages: Math.ceil(totalItems / limit),
+      // totalPages: Math.ceil(totalItems / limit),
+      totalPages: totalItems > 0 ? Math.ceil(totalItems / limit) : 0,
     },
   };
 };
 
+const getActivityLogsForExport = async (query) => {
+  const where = buildActivityLogWhere(query);
+  const orderBy = buildActivityLogOrderBy(query);
+
+  return prisma.activityLog.findMany({
+    where,
+    orderBy,
+    include: baseInclude,
+  });
+};
+
 module.exports = {
   getActivityLogs,
+  getActivityLogsForExport,
+  buildActivityLogWhere,
+  buildActivityLogOrderBy,
 };

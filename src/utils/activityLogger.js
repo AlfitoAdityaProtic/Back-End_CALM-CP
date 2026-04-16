@@ -8,9 +8,12 @@ const logActivity = async ({
   userAgent = null,
 }) => {
   try {
-    if (!action) return;
+    if (!action) {
+      console.warn("ACTIVITY LOG SKIPPED: action is required");
+      return null;
+    }
 
-    await prisma.activityLog.create({
+    return await prisma.activityLog.create({
       data: {
         userId,
         action,
@@ -20,7 +23,8 @@ const logActivity = async ({
       },
     });
   } catch (error) {
-    console.error("ACTIVITY LOG ERROR:", error.message);
+    console.error("ACTIVITY LOG ERROR FULL:", error);
+    return null;
   }
 };
 

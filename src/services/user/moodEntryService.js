@@ -2,7 +2,7 @@ const prisma = require("../../config/prisma");
 const aiAnalysisService = require("./ai-analysisMoodService");
 const logActivity = require("../../utils/activityLogger");
 
-const createMoodEntry = async (userId, data) => {
+const createMoodEntry = async (userId, data, meta = {}) => {
   const moodLabelId = data.moodLabelId;
   const feelingText =
     typeof data.feelingText === "string" ? data.feelingText.trim() : "";

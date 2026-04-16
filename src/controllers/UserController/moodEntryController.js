@@ -5,6 +5,10 @@ const createMoodEntry = async (req, res) => {
     const result = await moodEntryService.createMoodEntry(
       req.user.userId,
       req.body,
+      {
+        ipAddress: req.ip,
+        userAgent: req.headers["user-agent"],
+      },
     );
 
     return res.status(201).json({

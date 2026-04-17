@@ -13,6 +13,7 @@ const googleCalendarRoutes = require("./routes/user/googleCalendarRoutes");
 // routes milik admin
 const adminActivityLogRoutes = require("./routes/admin/activityLogRoutes");
 const adminMoodLabelRoutes = require("./routes/admin/mood-labelRoutes");
+const adminUserRoutes = require("./routes/admin/userRoutes");
 
 const app = express();
 
@@ -45,5 +46,7 @@ app.use("/api/google/calendar", googleCalendarRoutes);
 // api milik admin
 app.use("/api/admin", adminActivityLogRoutes);
 app.use("/api/admin", adminMoodLabelRoutes);
+app.use("/api/admin", adminUserRoutes);
+
 
 module.exports = app;

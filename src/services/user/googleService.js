@@ -104,8 +104,8 @@ async function saveGoogleAccount({
     userId,
     action: actionType,
     description: actionDescription,
-    ipAddress: req.ip,
-    userAgent: req.headers["user-agent"],
+    ipAddress,
+    userAgent,
   });
 
   return result;

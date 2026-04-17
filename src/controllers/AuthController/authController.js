@@ -238,6 +238,7 @@ const login = async (req, res) => {
           passwordHash: true,
           authProvider: true,
           role: true,
+          isActive: true,
           isEmailVerified: true,
           createdAt: true,
         },
@@ -256,6 +257,23 @@ const login = async (req, res) => {
           body: {
             message:
               "Akun ini terdaftar via Google. Silakan login dengan Google",
+          },
+        };
+      }
+
+      if (!user.isActive) {
+        await logActivity({
+          userId: user.id,
+          action: "LOGIN_BLOCKED",
+          description: "Login ditolak karena akun nonaktif",
+          ipAddress: req.ip,
+          userAgent: req.headers["user-agent"],
+        });
+
+        return {
+          status: 403,
+          body: {
+            message: "Akun anda telah dinonaktifkan",
           },
         };
       }

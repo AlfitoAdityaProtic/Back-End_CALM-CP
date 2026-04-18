@@ -19,7 +19,11 @@ const app = express();
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: [
+      "http://localhost:5173",
+      "https://mycalmspace.online",
+      "https://www.mycalmspace.online",
+    ],
     credentials: true,
   }),
 );
@@ -47,6 +51,5 @@ app.use("/api/google/calendar", googleCalendarRoutes);
 app.use("/api/admin", adminActivityLogRoutes);
 app.use("/api/admin", adminMoodLabelRoutes);
 app.use("/api/admin", adminUserRoutes);
-
 
 module.exports = app;

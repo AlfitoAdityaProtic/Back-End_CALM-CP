@@ -69,19 +69,8 @@ async function googleCallback(req, res) {
       userAgent: req.get("user-agent"),
     });
 
-    // return res.status(200).json({
-    //   success: true,
-    //   message: "Google account connected successfully",
-    //   data: {
-    //     id: savedGoogleAccount.id,
-    //     userId: savedGoogleAccount.userId,
-    //     googleEmail: savedGoogleAccount.googleEmail,
-    //     googleSub: savedGoogleAccount.googleSub,
-    //   },
-    // });
-
     return res.redirect(
-      `${process.env.FRONTEND_URL}/google-success?connected=true`,
+      `${process.env.FRONTEND_URL}/user/calendar?connected=true`,
     );
   } catch (error) {
     console.error("googleCallback error:", error);

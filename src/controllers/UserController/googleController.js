@@ -57,11 +57,6 @@ async function googleCallback(req, res) {
     }
 
     const tokens = await googleService.exchangeCodeForTokens(code);
-    // console.log("GOOGLE TOKENS RECEIVED:", {
-    //   hasAccessToken: !!tokens.access_token,
-    //   hasRefreshToken: !!tokens.refresh_token,
-    //   expiryDate: tokens.expiry_date || null,
-    // });
 
     const profile = await googleService.getGoogleUserProfile(tokens);
     // console.log("GOOGLE PROFILE RECEIVED:", profile);

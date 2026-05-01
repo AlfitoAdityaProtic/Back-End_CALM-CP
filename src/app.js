@@ -34,7 +34,7 @@ app.use(cookieParser());
 
 app.get("/", (req, res) => {
   res.json({
-    message: "API jalan",
+    message: "API jalan, selamat datang di MyCalmSpace API",
   });
 });
 

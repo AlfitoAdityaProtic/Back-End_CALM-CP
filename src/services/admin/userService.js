@@ -56,7 +56,7 @@ const createUser = async (data) => {
   const email = normalizeString(data.email)?.toLowerCase();
   const password = normalizeString(data.password);
   const fullName = normalizeString(data.fullName);
-  const username = normalizeString(data.username);
+  const username = normalizeString(data.username)?.toLowerCase();
   const phoneNumber = normalizeString(data.phoneNumber);
   const profilePhotoUrl = normalizeString(data.profilePhotoUrl);
   const role = normalizeString(data.role) || "user";

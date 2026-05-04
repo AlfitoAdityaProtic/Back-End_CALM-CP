@@ -162,7 +162,7 @@ module.exports = {
   createUser,
   getAllUsers,
   getUserById,
-  updateUser,
+  // updateUser,
   toggleUserActive,
-  deleteUser,
+  // deleteUser,
 };

@@ -14,6 +14,7 @@ const googleCalendarRoutes = require("./routes/user/googleCalendarRoutes");
 const adminActivityLogRoutes = require("./routes/admin/activityLogRoutes");
 const adminMoodLabelRoutes = require("./routes/admin/mood-labelRoutes");
 const adminUserRoutes = require("./routes/admin/userRoutes");
+const adminStatusBatteryRoutes = require("./routes/admin/statusBatteryRoutes");
 
 const app = express();
 
@@ -51,5 +52,6 @@ app.use("/api/google/calendar", googleCalendarRoutes);
 app.use("/api/admin", adminActivityLogRoutes);
 app.use("/api/admin", adminMoodLabelRoutes);
 app.use("/api/admin", adminUserRoutes);
+app.use("/api/admin", adminStatusBatteryRoutes);
 
 module.exports = app;

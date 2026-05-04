@@ -16,12 +16,12 @@ router.get("/users", userController.getAllUsers);
 router.get("/users/:id", userController.getUserById);
 
 // Rute untuk memperbarui user berdasarkan ID
-router.put("/users/:id", userController.updateUser);
+// router.put("/users/:id", userController.updateUser);
 
 // Rute untuk Menonaktifkan atau Mengaktifkan user
 router.patch("/users/:id/toggle-active", userController.toggleUserActive);
 
 // Rute untuk menghapus user berdasarkan ID
-router.delete("/users/:id", userController.deleteUser);
+// router.delete("/users/:id", userController.deleteUser);
 
 module.exports = router;

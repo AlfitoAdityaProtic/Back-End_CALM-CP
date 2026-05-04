@@ -33,8 +33,20 @@ const refreshTokenLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+const updatePasswordLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 5,
+  message: {
+    message: "Terlalu banyak percobaan ubah password, coba lagi nanti",
+    retryAfter: "60 detik",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 module.exports = {
   loginLimiter,
   registerLimiter,
   refreshTokenLimiter,
+  updatePasswordLimiter,
 };

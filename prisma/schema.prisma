@@ -58,6 +58,8 @@ model User {
   role            UserRole     @default(user)
   isActive        Boolean      @default(true) @map("is_active")
   isEmailVerified Boolean      @default(false) @map("is_email_verified")
+  resetPasswordToken String?   @map("reset_password_token")
+  resetPasswordExpires DateTime? @map("reset_password_expires")
   createdAt       DateTime     @default(now()) @map("created_at")
   updatedAt       DateTime     @updatedAt @map("updated_at")
 

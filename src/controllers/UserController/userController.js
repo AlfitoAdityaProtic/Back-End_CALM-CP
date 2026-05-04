@@ -1,5 +1,6 @@
 const prisma = require("../../config/prisma");
 const logActivity = require("../../utils/activityLogger");
+const bcrypt = require("bcrypt");
 
 const getUserProfile = async (req, res) => {
   try {
@@ -66,15 +67,9 @@ const updateProfile = async (req, res) => {
     if (phoneNumber !== undefined) data.phoneNumber = phoneNumber;
     if (profilePhotoUrl !== undefined) data.profilePhotoUrl = profilePhotoUrl;
 
-
     const updatedUser = await prisma.user.update({
       where: { id: userId },
-      data: {
-        fullName,
-        username,
-        phoneNumber,
-        profilePhotoUrl,
-      },
+      data,
       select: {
         id: true,
         email: true,
@@ -108,9 +103,99 @@ const updateProfile = async (req, res) => {
     });
   }
 };
+const updatePassword = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { currentPassword, newPassword, confirmPassword } = req.body;
 
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      return res.status(400).json({
+        message: "semua field password wajib di isi",
+      });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({
+        message: "Konfirmasi Password tidak Sesuai",
+      });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({
+        message: "Password minimal 8 karakter",
+      });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        passwordHash: true,
+        authProvider: true,
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User tidak Ditemukan",
+      });
+    }
+
+    if (user.authProvider !== "local") {
+      return res.status(400).json({
+        message: "Akun ini login dengan Google, tidak bisa ubah password",
+      });
+    }
+
+    const isValid = await bcrypt.compare(currentPassword, user.passwordHash);
+
+    if (!isValid) {
+      return res.status(400).json({
+        message: "Password lama salah",
+      });
+    }
+
+    const isSamePassword = await bcrypt.compare(newPassword, user.passwordHash);
+    if (isSamePassword) {
+      return res.status(400).json({
+        message: "Password baru tidak boleh sama dengan password lama",
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        passwordHash: hashedPassword,
+      },
+    });
+
+    await prisma.refreshToken.deleteMany({
+      where: { userId },
+    });
+
+    await logActivity({
+      userId,
+      action: "UPDATE_PASSWORD",
+      description: "User memperbarui password",
+      ipAddress: req.ip,
+      userAgent: req.headers["user-agent"],
+    });
+
+    return res.status(200).json({
+      message: "Password berhasil diubah. Silahkan Login Kembali",
+    });
+  } catch (error) {
+    console.error("UPDATE PASSWORD ERROR:", error);
+
+    return res.status(500).json({
+      message: "Terjadi Kesalahan Server",
+    });
+  }
+};
 
 module.exports = {
   getUserProfile,
   updateProfile,
+  updatePassword,
 };

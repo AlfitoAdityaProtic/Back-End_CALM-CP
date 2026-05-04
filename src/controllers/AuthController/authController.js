@@ -1,5 +1,9 @@
 const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
+const {
+  generateAccessToken,
+  generateRefreshToken,
+  getRefreshTokenExpiryDate,
+} = require("../../utils/token");
 const crypto = require("crypto");
 const prisma = require("../../config/prisma");
 const logActivity = require("../../utils/activityLogger");
@@ -20,50 +24,6 @@ const isValidEmail = (email) => {
 
 const isValidUsername = (username) => {
   return /^[a-zA-Z0-9_]+$/.test(username);
-};
-
-const generateAccessToken = (user) => {
-  return jwt.sign(
-    {
-      userId: user.id,
-      email: user.email,
-      role: user.role,
-    },
-    process.env.JWT_ACCESS_SECRET,
-    {
-      expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN || "15m",
-    },
-  );
-};
-
-const generateRefreshToken = () => {
-  return crypto.randomBytes(64).toString("hex");
-};
-
-const getRefreshTokenExpiryDate = () => {
-  const expiry = new Date();
-  const refreshTokenTtl = process.env.REFRESH_TOKEN_EXPIRES_IN || "2d";
-
-  const match = refreshTokenTtl.match(/^(\d+)([dhm])$/);
-
-  if (!match) {
-    throw new Error(
-      "Format REFRESH_TOKEN_EXPIRES_IN tidak valid. Gunakan format seperti 7d, 12h, atau 30m",
-    );
-  }
-
-  const value = Number(match[1]);
-  const unit = match[2];
-
-  if (unit === "d") {
-    expiry.setDate(expiry.getDate() + value);
-  } else if (unit === "h") {
-    expiry.setHours(expiry.getHours() + value);
-  } else if (unit === "m") {
-    expiry.setMinutes(expiry.getMinutes() + value);
-  }
-
-  return expiry;
 };
 
 const register = async (req, res) => {

@@ -116,6 +116,32 @@ async function syncGoogleCalendarEvents(
     }
   }
 
+  const googleEventIds = events
+    .filter((event) => event.id)
+    .map((event) => event.id);
+
+  let deletedCount = 0;
+
+  if (googleEventIds.length > 0) {
+    const deletedResult = await prisma.calendarEvent.deleteMany({
+      where: {
+        userId,
+        googleAccountId: googleAccount.id,
+        googleEventId: {
+          notIn: googleEventIds,
+        },
+        startTime: {
+          gte: timeMin,
+        },
+        endTime: {
+          lte: timeMax,
+        },
+      },
+    });
+
+    deletedCount = deletedResult.count;
+  }
+
   await logActivity({
     userId,
     action: "GOOGLE_CALENDAR_SYNC",
@@ -128,6 +154,7 @@ async function syncGoogleCalendarEvents(
     totalFetched: events.length,
     createdCount,
     updatedCount,
+    deletedCount,
   };
 }
 

@@ -8,6 +8,18 @@ const {
   getRefreshTokenExpiryDate,
 } = require("../../utils/token");
 
+const getRefreshTokenFromCookie = (req) => {
+  const rawCookie = req.headers.cookie || "";
+
+  const tokens = rawCookie
+    .split(";")
+    .map((cookie) => cookie.trim())
+    .filter((cookie) => cookie.startsWith("refreshToken="))
+    .map((cookie) => decodeURIComponent(cookie.split("=")[1]));
+
+  return tokens[tokens.length - 1] || req.cookies.refreshToken;
+};
+
 const googleLogin = (req, res) => {
   const url =
     `https://accounts.google.com/o/oauth2/v2/auth` +
@@ -106,11 +118,17 @@ const googleCallback = async (req, res) => {
     //   sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     //   maxAge: 7 * 24 * 60 * 60 * 1000,
     // });
+    res.clearCookie("refreshToken", { path: "/" });
+    res.clearCookie("refreshToken", { domain: ".calm-be.online", path: "/" });
+    res.clearCookie("refreshToken", {
+      domain: "api.calm-be.online",
+      path: "/",
+    });
+
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: true,
       sameSite: "none",
-      // domain: ".calm-be.online",
       path: "/",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
@@ -137,7 +155,10 @@ const googleCallback = async (req, res) => {
 
 const getGoogleLoginAccessToken = async (req, res) => {
   try {
-    const refreshToken = req.cookies.refreshToken;
+    const refreshToken = getRefreshTokenFromCookie(req);
+
+    console.log("RAW COOKIE:", req.headers.cookie);
+    console.log("SELECTED REFRESH TOKEN:", refreshToken);
 
     if (!refreshToken) {
       return res.status(401).json({

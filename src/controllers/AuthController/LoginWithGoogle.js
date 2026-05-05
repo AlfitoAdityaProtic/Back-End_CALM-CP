@@ -1,3 +1,4 @@
+const crypto = require("crypto");
 const axios = require("axios");
 const prisma = require("../../config/prisma");
 const logActivity = require("../../utils/activityLogger");
@@ -7,18 +8,6 @@ const {
   generateRefreshToken,
   getRefreshTokenExpiryDate,
 } = require("../../utils/token");
-
-const getRefreshTokenFromCookie = (req) => {
-  const rawCookie = req.headers.cookie || "";
-
-  const tokens = rawCookie
-    .split(";")
-    .map((cookie) => cookie.trim())
-    .filter((cookie) => cookie.startsWith("refreshToken="))
-    .map((cookie) => decodeURIComponent(cookie.split("=")[1]));
-
-  return tokens[tokens.length - 1] || req.cookies.refreshToken;
-};
 
 const googleLogin = (req, res) => {
   const url =
@@ -111,26 +100,15 @@ const googleCallback = async (req, res) => {
       },
     });
 
-    // res.cookie("refreshToken", refreshToken, {
-    //   httpOnly: true,
-    //   secure: process.env.NODE_ENV === "production",
-    //   //   sameSite: "lax",
-    //   sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-    //   maxAge: 7 * 24 * 60 * 60 * 1000,
-    // });
-    res.clearCookie("refreshToken", { path: "/" });
-    res.clearCookie("refreshToken", { domain: ".calm-be.online", path: "/" });
-    res.clearCookie("refreshToken", {
-      domain: "api.calm-be.online",
-      path: "/",
-    });
+    const oauthCode = crypto.randomBytes(32).toString("hex");
 
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-      path: "/",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+    await prisma.oAuthCode.create({
+      data: {
+        code: oauthCode,
+        refreshToken,
+        userId: user.id,
+        expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+      },
     });
 
     await logActivity({
@@ -141,33 +119,37 @@ const googleCallback = async (req, res) => {
       userAgent: req.headers["user-agent"],
     });
 
-    return res.redirect(`${process.env.FRONTEND_URL}/oauth-success`);
+    return res.redirect(
+      `${process.env.FRONTEND_URL}/oauth-success?code=${encodeURIComponent(
+        oauthCode,
+      )}`,
+    );
   } catch (error) {
     console.error("GOOGLE LOGIN ERROR:", error.response?.data || error.message);
-    console.error("GOOGLE LOGIN ERROR STATUS:", error.response?.status);
-    console.error("GOOGLE LOGIN ERROR DATA:", error.response?.data);
-    console.error("GOOGLE LOGIN ERROR MESSAGE:", error.message);
     return res.redirect(
       `${process.env.FRONTEND_URL}/login?error=google_failed`,
     );
   }
 };
 
-const getGoogleLoginAccessToken = async (req, res) => {
+const exchangeGoogleCode = async (req, res) => {
   try {
-    const refreshToken = getRefreshTokenFromCookie(req);
+    const { code } = req.body;
 
-    console.log("RAW COOKIE:", req.headers.cookie);
-    console.log("SELECTED REFRESH TOKEN:", refreshToken);
-
-    if (!refreshToken) {
-      return res.status(401).json({
-        message: "Refresh token tidak ditemukan",
+    if (!code) {
+      return res.status(400).json({
+        message: "OAuth code wajib diisi",
       });
     }
 
-    const savedRefreshToken = await prisma.refreshToken.findUnique({
-      where: { token: refreshToken },
+    const oauthCode = await prisma.oAuthCode.findFirst({
+      where: {
+        code,
+        used: false,
+        expiresAt: {
+          gt: new Date(),
+        },
+      },
       include: {
         user: {
           select: {
@@ -180,41 +162,37 @@ const getGoogleLoginAccessToken = async (req, res) => {
       },
     });
 
-    if (!savedRefreshToken) {
+    if (!oauthCode) {
       return res.status(401).json({
-        message: "Refresh token tidak valid",
+        message: "OAuth code tidak valid atau sudah expired",
       });
     }
 
-    if (savedRefreshToken.expiresAt < new Date()) {
-      await prisma.refreshToken.delete({
-        where: { token: refreshToken },
-      });
-
-      return res.status(401).json({
-        message: "Refresh token expired",
-      });
-    }
-
-    if (!savedRefreshToken.user.isActive) {
+    if (!oauthCode.user.isActive) {
       return res.status(403).json({
         message: "Akun anda telah dinonaktifkan",
       });
     }
 
-    const accessToken = generateAccessToken(savedRefreshToken.user);
+    await prisma.oAuthCode.update({
+      where: { id: oauthCode.id },
+      data: { used: true },
+    });
+
+    const accessToken = generateAccessToken(oauthCode.user);
 
     return res.status(200).json({
-      message: "Access token berhasil dibuat",
+      message: "Login Google berhasil",
       accessToken,
+      refreshToken: oauthCode.refreshToken,
       data: {
-        id: savedRefreshToken.user.id,
-        email: savedRefreshToken.user.email,
-        role: savedRefreshToken.user.role,
+        id: oauthCode.user.id,
+        email: oauthCode.user.email,
+        role: oauthCode.user.role,
       },
     });
   } catch (error) {
-    console.error("GET GOOGLE ACCESS TOKEN ERROR:", error);
+    console.error("EXCHANGE GOOGLE CODE ERROR:", error);
 
     return res.status(500).json({
       message: "Terjadi kesalahan pada server",
@@ -225,5 +203,5 @@ const getGoogleLoginAccessToken = async (req, res) => {
 module.exports = {
   googleLogin,
   googleCallback,
-  getGoogleLoginAccessToken,
+  exchangeGoogleCode,
 };

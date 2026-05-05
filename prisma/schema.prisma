@@ -70,6 +70,7 @@ model User {
   moodEntries       MoodEntry[]
   encouragements    EncouragementResult[]
   refreshTokens     RefreshToken[]
+  oauthCodes OAuthCode[]
 
   @@map("users")
 }
@@ -224,4 +225,20 @@ model EncouragementResult {
   @@index([userId])
   @@index([moodEntryId])
   @@map("encouragement_results")
+}
+
+model OAuthCode {
+  id           String   @id @default(uuid())
+  code         String   @unique
+  refreshToken String   @map("refresh_token")
+  userId       String   @map("user_id")
+  expiresAt    DateTime @map("expires_at")
+  used         Boolean  @default(false)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([code])
+  @@index([userId])
+  @@map("oauth_codes")
 }

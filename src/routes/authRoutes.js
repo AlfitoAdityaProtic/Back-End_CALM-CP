@@ -17,7 +17,7 @@ const {
 const {
   googleLogin,
   googleCallback,
-  getGoogleLoginAccessToken,
+  exchangeGoogleCode,
 } = require("../controllers/AuthController/LoginWithGoogle");
 
 const {
@@ -35,6 +35,6 @@ router.post("/reset-password", resetPassword);
 
 router.get("/google/login", googleLogin);
 router.get("/google/callback", googleCallback);
-router.get("/google/access-token", getGoogleLoginAccessToken);
+router.post("/google/exchange-code", exchangeGoogleCode);
 
 module.exports = router;

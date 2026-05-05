@@ -27,13 +27,22 @@ const googleCallback = async (req, res) => {
       return res.redirect(`${process.env.FRONTEND_URL}/login?error=no_code`);
     }
 
-    const tokenRes = await axios.post("https://oauth2.googleapis.com/token", {
-      code,
-      client_id: process.env.GOOGLE_CLIENT_ID,
-      client_secret: process.env.GOOGLE_CLIENT_SECRET,
-      redirect_uri: process.env.GOOGLE_LOGIN_REDIRECT_URI,
-      grant_type: "authorization_code",
-    });
+    const params = new URLSearchParams();
+    params.append("code", code);
+    params.append("client_id", process.env.GOOGLE_CLIENT_ID);
+    params.append("client_secret", process.env.GOOGLE_CLIENT_SECRET);
+    params.append("redirect_uri", process.env.GOOGLE_LOGIN_REDIRECT_URI);
+    params.append("grant_type", "authorization_code");
+
+    const tokenRes = await axios.post(
+      "https://oauth2.googleapis.com/token",
+      params,
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      },
+    );
 
     const { access_token } = tokenRes.data;
 
@@ -109,7 +118,9 @@ const googleCallback = async (req, res) => {
     return res.redirect(`${process.env.FRONTEND_URL}/oauth-success`);
   } catch (error) {
     console.error("GOOGLE LOGIN ERROR:", error.response?.data || error.message);
-
+    console.error("GOOGLE LOGIN ERROR STATUS:", error.response?.status);
+    console.error("GOOGLE LOGIN ERROR DATA:", error.response?.data);
+    console.error("GOOGLE LOGIN ERROR MESSAGE:", error.message);
     return res.redirect(
       `${process.env.FRONTEND_URL}/login?error=google_failed`,
     );

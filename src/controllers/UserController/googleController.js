@@ -7,6 +7,9 @@ async function connectGoogle(req, res) {
     const userId = req.user.userId;
     const authUrl = googleService.getGoogleAuthURL(userId);
 
+    console.log("GOOGLE_AUTH_URL:", authUrl);
+    console.log("GOOGLE_REDIRECT_URI_ENV:", process.env.GOOGLE_REDIRECT_URI);
+
     // return res.redirect(authUrl);
     return res.status(200).json({
       success: true,

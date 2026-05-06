@@ -1,6 +1,7 @@
 const { google } = require("googleapis");
 const prisma = require("../../config/prisma");
 const logActivity = require("../../utils/activityLogger");
+const socialBatteryService = require("./socialBatteryService");
 
 function createOAuthClient() {
   return new google.auth.OAuth2(
@@ -61,7 +62,10 @@ async function syncGoogleCalendarEvents(
     orderBy: "startTime",
   });
 
-  const events = response.data.items || [];
+  // const events = response.data.items || [];
+  const events = (response.data.items || []).filter(
+    (event) => event.status !== "cancelled",
+  );
 
   let createdCount = 0;
   let updatedCount = 0;
@@ -120,27 +124,52 @@ async function syncGoogleCalendarEvents(
     .filter((event) => event.id)
     .map((event) => event.id);
 
+  // let deletedCount = 0;
+
+  // if (googleEventIds.length > 0) {
+  //   const deletedResult = await prisma.calendarEvent.deleteMany({
+  //     where: {
+  //       userId,
+  //       googleAccountId: googleAccount.id,
+  //       googleEventId: {
+  //         notIn: googleEventIds,
+  //       },
+  //       startTime: {
+  //         gte: timeMin,
+  //         lte: timeMax,
+  //       },
+  //     },
+  //   });
+
+  //   deletedCount = deletedResult.count;
+  // }
   let deletedCount = 0;
 
-  if (googleEventIds.length > 0) {
-    const deletedResult = await prisma.calendarEvent.deleteMany({
-      where: {
-        userId,
-        googleAccountId: googleAccount.id,
-        googleEventId: {
-          notIn: googleEventIds,
-        },
-        startTime: {
-          gte: timeMin,
-        },
-        endTime: {
-          lte: timeMax,
-        },
-      },
-    });
+  const deleteWhere = {
+    userId,
+    googleAccountId: googleAccount.id,
+    startTime: {
+      gte: timeMin,
+      lte: timeMax,
+    },
+  };
 
-    deletedCount = deletedResult.count;
+  if (googleEventIds.length > 0) {
+    deleteWhere.googleEventId = {
+      notIn: googleEventIds,
+    };
   }
+
+  const deletedResult = await prisma.calendarEvent.deleteMany({
+    where: deleteWhere,
+  });
+
+  deletedCount = deletedResult.count;
+
+  const today = new Date();
+
+  const socialBatteryResult =
+    await socialBatteryService.calculateSocialBatteryByDate(userId, today);
 
   await logActivity({
     userId,
@@ -155,6 +184,7 @@ async function syncGoogleCalendarEvents(
     createdCount,
     updatedCount,
     deletedCount,
+    socialBattery: socialBatteryResult,
   };
 }
 

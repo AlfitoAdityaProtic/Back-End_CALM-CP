@@ -9,6 +9,7 @@ const userMoodLabelRoutes = require("./routes/user/mood-labelRoutes");
 const userMoodEntriesRoutes = require("./routes/user/moodEntriesRoutes");
 const googleRoutes = require("./routes/user/googleRoutes");
 const googleCalendarRoutes = require("./routes/user/googleCalendarRoutes");
+const socialBatteryRoutes = require("./routes/user/socialBatteryRoutes");
 
 // routes milik admin
 const adminActivityLogRoutes = require("./routes/admin/activityLogRoutes");
@@ -47,6 +48,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/users", userMoodLabelRoutes);
 app.use("/api/users", userMoodEntriesRoutes);
+app.use("/api/users", socialBatteryRoutes);
 app.use("/api/google", googleRoutes);
 app.use("/api/google/calendar", googleCalendarRoutes);
 

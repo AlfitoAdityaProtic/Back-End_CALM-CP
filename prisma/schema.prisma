@@ -159,6 +159,12 @@ model SocialBatteryLog {
   socialIntensityScore Float    @default(0) @map("social_intensity_score")
   batteryScore         Float    @default(0) @map("battery_score")
   calculationNotes     String?  @map("calculation_notes")
+  
+  aiInsight            String?  @map("ai_insight")
+  aiScoreExplanation   String?  @map("ai_score_explanation")
+  recoverySuggestion   String?  @map("recovery_suggestion")
+  aiModelName          String?  @map("ai_model_name")
+  
   createdAt            DateTime @default(now()) @map("created_at")
   updatedAt            DateTime @updatedAt @map("updated_at")
 

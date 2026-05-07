@@ -12,6 +12,7 @@ const googleCalendarRoutes = require("./routes/user/googleCalendarRoutes");
 const socialBatteryRoutes = require("./routes/user/socialBatteryRoutes");
 
 // routes milik admin
+const adminDashboardRoutes = require("./routes/admin/dashboardRoutes");
 const adminActivityLogRoutes = require("./routes/admin/activityLogRoutes");
 const adminMoodLabelRoutes = require("./routes/admin/mood-labelRoutes");
 const adminUserRoutes = require("./routes/admin/userRoutes");
@@ -53,6 +54,7 @@ app.use("/api/google", googleRoutes);
 app.use("/api/google/calendar", googleCalendarRoutes);
 
 // api milik admin
+app.use("/api/admin", adminDashboardRoutes);
 app.use("/api/admin", adminActivityLogRoutes);
 app.use("/api/admin", adminMoodLabelRoutes);
 app.use("/api/admin", adminUserRoutes);

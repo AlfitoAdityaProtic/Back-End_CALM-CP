@@ -1,6 +1,7 @@
 const prisma = require("../../config/prisma");
 const aiAnalysisService = require("./ai-analysisMoodService");
 const logActivity = require("../../utils/activityLogger");
+const { getIO } = require("../../config/socket");
 
 const createMoodEntry = async (userId, data, meta = {}) => {
   const moodLabelId = data.moodLabelId;
@@ -104,6 +105,10 @@ const createMoodEntry = async (userId, data, meta = {}) => {
       userAgent,
     });
 
+    getIO().to("admin_dashboard").emit("dashboard_updated", {
+      type: "CREATE_MOOD_ENTRY",
+    });
+
     return {
       moodEntry: updatedMoodEntry,
       encouragementResult,
@@ -124,6 +129,9 @@ const createMoodEntry = async (userId, data, meta = {}) => {
       description: `Gagal memproses mood entry dengan label "${moodLabel.name}": ${err.message}`,
       ipAddress,
       userAgent,
+    });
+    getIO().to("admin_dashboard").emit("dashboard_updated", {
+      type: "MOOD_ENTRY_FAILED",
     });
 
     throw err;

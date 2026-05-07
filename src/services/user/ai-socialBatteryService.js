@@ -1,5 +1,6 @@
 const prisma = require("../../config/prisma");
 const logActivity = require("../../utils/activityLogger");
+const { getIO } = require("../../config/socket");
 
 function getStartAndEndOfDay(date) {
   const targetDate = new Date(date);
@@ -106,6 +107,10 @@ async function generateSocialBatteryAiInsight(
       .slice(0, 10)}`,
     ipAddress,
     userAgent,
+  });
+
+  getIO().to("admin_dashboard").emit("dashboard_updated", {
+    type: "CREATE_AI_INSIGHT_SOCIAL_BATTERY_LOG",
   });
 
   return {

@@ -1,5 +1,6 @@
 const prisma = require("../../config/prisma");
 const logActivity = require("../../utils/activityLogger");
+const { getIO } = require("../../config/socket");
 
 function getStartAndEndOfDay(date) {
   const targetDate = new Date(date);
@@ -184,6 +185,9 @@ async function calculateSocialBatteryByDate(
       .slice(0, 10)} dengan score ${batteryScore.toFixed(2)}`,
     ipAddress,
     userAgent,
+  });
+  getIO().to("admin_dashboard").emit("dashboard_updated", {
+    type: "CALCULATE_SOCIAL_BATTERY_LOG",
   });
 
   return socialBatteryLog;

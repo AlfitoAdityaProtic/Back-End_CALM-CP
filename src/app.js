@@ -4,6 +4,7 @@ const cookieParser = require("cookie-parser");
 
 const authRoutes = require("./routes/authRoutes");
 // routes milik user
+const userDashboardRoutes = require("./routes/user/dashboardUserRoutes");
 const userRoutes = require("./routes/userRoutes");
 const userMoodLabelRoutes = require("./routes/user/mood-labelRoutes");
 const userMoodEntriesRoutes = require("./routes/user/moodEntriesRoutes");
@@ -46,6 +47,7 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 
 // api milik user
+app.use("/api/users", userDashboardRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/users", userMoodLabelRoutes);
 app.use("/api/users", userMoodEntriesRoutes);

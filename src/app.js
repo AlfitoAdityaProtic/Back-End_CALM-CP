@@ -15,6 +15,8 @@ const socialBatteryRoutes = require("./routes/user/socialBatteryRoutes");
 // routes milik admin
 const adminDashboardRoutes = require("./routes/admin/dashboardRoutes");
 const adminMoodEntriesRoutes = require("./routes/admin/moodEntryRoutes");
+const adminEncouragementRoutes = require("./routes/admin/encouragementRoutes");
+const adminSocialBatteryRoutes = require("./routes/admin/socialBatteryLogsRoutes");
 const adminActivityLogRoutes = require("./routes/admin/activityLogRoutes");
 const adminMoodLabelRoutes = require("./routes/admin/mood-labelRoutes");
 const adminUserRoutes = require("./routes/admin/userRoutes");
@@ -40,8 +42,24 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 app.get("/", (req, res) => {
-  res.json({
-    message: "API jalan, selamat datang di MyCalmSpace API",
+  res.status(200).json({
+    success: true,
+    message: "Selamat datang di MyCalmSpace API",
+    system: {
+      name: "MyCalmSpace API",
+      version: "1.0.0",
+      status: "running",
+      environment: process.env.NODE_ENV || "development",
+      timestamp: new Date().toISOString(),
+    },
+    features: [
+      "Authentication & Authorization",
+      "Mood Tracking",
+      "AI Encouragement Analysis",
+      "Social Battery Monitoring",
+      "Google Calendar Integration",
+      "Admin Dashboard Management",
+    ],
   });
 });
 
@@ -59,6 +77,8 @@ app.use("/api/google/calendar", googleCalendarRoutes);
 // api milik admin
 app.use("/api/admin", adminDashboardRoutes);
 app.use("/api/admin", adminMoodEntriesRoutes);
+app.use("/api/admin", adminEncouragementRoutes);
+app.use("/api/admin", adminSocialBatteryRoutes);
 app.use("/api/admin", adminActivityLogRoutes);
 app.use("/api/admin", adminMoodLabelRoutes);
 app.use("/api/admin", adminUserRoutes);

@@ -2,6 +2,7 @@ const { google } = require("googleapis");
 const prisma = require("../../config/prisma");
 const logActivity = require("../../utils/activityLogger");
 const socialBatteryService = require("./socialBatteryService");
+const notificationService = require("./notificationService");
 
 function createOAuthClient() {
   return new google.auth.OAuth2(
@@ -177,6 +178,13 @@ async function syncGoogleCalendarEvents(
     description: `User melakukan sinkronisasi Google Calendar (${events.length} event diproses)`,
     ipAddress,
     userAgent,
+  });
+  
+  await notificationService.createInAppNotification({
+    userId,
+    type: "system",
+    title: "Kalender berhasil disinkronkan",
+    message: `Sinkronisasi selesai. ${createdCount} event baru, ${updatedCount} event diperbarui, dan ${deletedCount} event dihapus.`,
   });
 
   return {

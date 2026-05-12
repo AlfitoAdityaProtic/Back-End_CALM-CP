@@ -1,5 +1,6 @@
 const prisma = require("../../config/prisma");
 const aiAnalysisService = require("./ai-analysisMoodService");
+const notificationService = require("../user/notificationService");
 const logActivity = require("../../utils/activityLogger");
 const { getIO } = require("../../config/socket");
 
@@ -95,6 +96,13 @@ const createMoodEntry = async (userId, data, meta = {}) => {
         confidenceScore: aiResult.confidenceScore ?? null,
         modelName: aiResult.modelName ?? null,
       },
+    });
+    await notificationService.sendAllNotifications({
+      userId,
+      type: "mood_jar_result",
+      title: "Mood Jar berhasil dianalisis",
+      message: aiResult.supportMessage,
+      relatedMoodEntryId: moodEntry.id,
     });
 
     await logActivity({

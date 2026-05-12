@@ -2,6 +2,7 @@ const { google } = require("googleapis");
 const prisma = require("../../config/prisma");
 const { oauth2Client, GOOGLE_SCOPES } = require("../../config/googleOAuth");
 const logActivity = require("../../utils/activityLogger");
+const notificationService = require("./notificationService");
 
 function getGoogleAuthURL(userId) {
   if (!userId) {
@@ -108,6 +109,16 @@ async function saveGoogleAccount({
     userAgent,
   });
 
+  await notificationService.createInAppNotification({
+    userId,
+    type: "system",
+    title:
+      actionType === "GOOGLE_ACCOUNT_CONNECTED"
+        ? "Google Calendar berhasil terhubung"
+        : "Google Calendar berhasil diperbarui",
+    message: `Akun Google ${profile.email} sudah berhasil terhubung ke Calm.`,
+  });
+
   return result;
 }
 
@@ -176,6 +187,13 @@ async function disconnectGoogleAccount(
     description: `User memutuskan koneksi Google account (${googleAccount.googleEmail})`,
     ipAddress,
     userAgent,
+  });
+
+  await notificationService.createInAppNotification({
+    userId,
+    type: "system",
+    title: "Google Calendar berhasil diputus",
+    message: `Koneksi Google Calendar ${googleAccount.googleEmail} sudah berhasil diputus dari Calm.`,
   });
 
   return true;

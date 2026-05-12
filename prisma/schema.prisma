@@ -27,6 +27,24 @@ enum AnalysisStatus {
   failed
 }
 
+enum NotificationType {
+  mood_jar_result
+  social_battery_result
+  system
+}
+
+enum NotificationChannel {
+  in_app
+  email
+  whatsapp
+}
+
+enum NotificationStatus {
+  pending
+  sent
+  failed
+}
+
 // enum BatteryStatus {
 //   high
 //   medium
@@ -70,7 +88,8 @@ model User {
   moodEntries       MoodEntry[]
   encouragements    EncouragementResult[]
   refreshTokens     RefreshToken[]
-  oauthCodes OAuthCode[]
+  oauthCodes        OAuthCode[]
+  notifications     Notification[]
 
   @@map("users")
 }
@@ -171,6 +190,7 @@ model SocialBatteryLog {
   user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   batteryStatus BatteryStatus @relation(fields: [batteryStatusId], references: [id], onDelete: Restrict)
 
+  notifications Notification[]
   @@unique([userId, date])
   @@index([userId])
   @@index([batteryStatusId])
@@ -210,6 +230,7 @@ model MoodEntry {
   encouragementResult EncouragementResult?
   moodLabel           MoodLabel            @relation(fields: [moodLabelId], references: [id], onDelete: Restrict)
 
+  notifications Notification[]
   @@index([userId])
   @@index([moodLabelId])
   @@map("mood_entries")
@@ -247,4 +268,39 @@ model OAuthCode {
   @@index([code])
   @@index([userId])
   @@map("oauth_codes")
+}
+
+model Notification {
+  id     String @id @default(uuid())
+  userId String @map("user_id")
+
+  type    NotificationType
+  channel NotificationChannel
+  status  NotificationStatus @default(pending)
+
+  title   String
+  message String
+
+  relatedMoodEntryId        String? @map("related_mood_entry_id")
+  relatedSocialBatteryLogId String? @map("related_social_battery_log_id")
+
+  sentAt DateTime? @map("sent_at")
+  readAt DateTime? @map("read_at")
+  error  String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  moodEntry MoodEntry? @relation(fields: [relatedMoodEntryId], references: [id], onDelete: SetNull)
+  socialBatteryLog SocialBatteryLog? @relation(fields: [relatedSocialBatteryLogId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([status])
+  @@index([type])
+  @@index([readAt])
+  @@index([relatedMoodEntryId])
+  @@index([relatedSocialBatteryLogId])
+  @@map("notifications")
 }

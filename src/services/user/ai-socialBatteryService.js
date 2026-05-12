@@ -1,6 +1,7 @@
 const prisma = require("../../config/prisma");
 const logActivity = require("../../utils/activityLogger");
 const { getIO } = require("../../config/socket");
+const notificationService = require("./notificationService");
 
 function getStartAndEndOfDay(date) {
   const targetDate = new Date(date);
@@ -111,6 +112,24 @@ async function generateSocialBatteryAiInsight(
 
   getIO().to("admin_dashboard").emit("dashboard_updated", {
     type: "CREATE_AI_INSIGHT_SOCIAL_BATTERY_LOG",
+  });
+
+  const socialBatteryNotificationMessage = `🌸 Hai, CALM buddy!
+
+Social Battery-mu sudah dicek nih 😌
+${aiInsight}🌟
+
+${aiScoreExplanation} 💛
+
+Tips dari CALM:
+${recoverySuggestion}😊`;
+
+  await notificationService.sendAllNotifications({
+    userId,
+    type: "social_battery_result",
+    title: "Social Battery kamu sudah dianalisis",
+    message: socialBatteryNotificationMessage,
+    relatedSocialBatteryLogId: updatedLog.id,
   });
 
   return {

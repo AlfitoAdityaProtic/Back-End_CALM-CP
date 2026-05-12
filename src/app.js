@@ -5,6 +5,7 @@ const cookieParser = require("cookie-parser");
 const authRoutes = require("./routes/authRoutes");
 // routes milik user
 const userDashboardRoutes = require("./routes/user/dashboardUserRoutes");
+const notificationRoute = require("./routes/user/notificationRoutes");
 const userRoutes = require("./routes/userRoutes");
 const userMoodLabelRoutes = require("./routes/user/mood-labelRoutes");
 const userMoodEntriesRoutes = require("./routes/user/moodEntriesRoutes");
@@ -73,6 +74,7 @@ app.use("/api/users", userMoodEntriesRoutes);
 app.use("/api/users", socialBatteryRoutes);
 app.use("/api/google", googleRoutes);
 app.use("/api/google/calendar", googleCalendarRoutes);
+app.use("/api/users/notifications", notificationRoute);
 
 // api milik admin
 app.use("/api/admin", adminDashboardRoutes);

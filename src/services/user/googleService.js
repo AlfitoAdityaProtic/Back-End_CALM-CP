@@ -55,6 +55,24 @@ async function saveGoogleAccount({
   if (!userId) {
     throw new Error("User ID is required to save Google account");
   }
+
+  const googleSubUsedByOtherUser = await prisma.googleAccount.findFirst({
+    where: {
+      googleSub: profile.id,
+      NOT: {
+        userId,
+      },
+    },
+  });
+
+  if (googleSubUsedByOtherUser) {
+    const error = new Error(
+      "Google Calendar account already connected to another user",
+    );
+    error.code = "GOOGLE_ALREADY_CONNECTED";
+    throw error;
+  }
+  
   const existing = await prisma.googleAccount.findUnique({
     where: { userId },
   });

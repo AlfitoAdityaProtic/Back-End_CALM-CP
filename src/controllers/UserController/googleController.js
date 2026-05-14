@@ -7,8 +7,8 @@ async function connectGoogle(req, res) {
     const userId = req.user.userId;
     const authUrl = googleService.getGoogleAuthURL(userId);
 
-    console.log("GOOGLE_AUTH_URL:", authUrl);
-    console.log("GOOGLE_REDIRECT_URI_ENV:", process.env.GOOGLE_REDIRECT_URI);
+    // console.log("GOOGLE_AUTH_URL:", authUrl);
+    // console.log("GOOGLE_REDIRECT_URI_ENV:", process.env.GOOGLE_REDIRECT_URI);
 
     // return res.redirect(authUrl);
     return res.status(200).json({
@@ -78,14 +78,13 @@ async function googleCallback(req, res) {
   } catch (error) {
     console.error("googleCallback error:", error);
 
-    // return res.status(500).json({
-    //   success: false,
-    //   message: "Failed to handle Google callback",
-    //   error: error.message,
-    // });
+    const reason =
+      error.code === "GOOGLE_ALREADY_CONNECTED"
+        ? "google_already_connected"
+        : "google_connect_failed";
 
     return res.redirect(
-      `${process.env.FRONTEND_URL}/google-success?connected=false`,
+      `${process.env.FRONTEND_URL}/user/calendar?connected=false&reason=${encodeURIComponent(reason)}`,
     );
   }
 }

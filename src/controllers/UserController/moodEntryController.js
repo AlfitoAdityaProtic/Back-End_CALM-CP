@@ -1,4 +1,4 @@
-const moodEntryService = require("../../services/user/moodEntryService");
+const moodEntryService = require("../../services/user/moodJar/moodEntryService");
 
 const createMoodEntry = async (req, res) => {
   try {
@@ -24,7 +24,7 @@ const createMoodEntry = async (req, res) => {
   }
 };
 
-const getMyMoodEntries = async (req, res, next) => {
+const getMyMoodEntries = async (req, res) => {
   try {
     const userId = req.user.userId;
     const result = await moodEntryService.getMyMoodEntries(userId, req.query);

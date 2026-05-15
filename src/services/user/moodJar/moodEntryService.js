@@ -1,8 +1,8 @@
-const prisma = require("../../config/prisma");
+const prisma = require("../../../config/prisma");
 const aiAnalysisService = require("./ai-analysisMoodService");
-const notificationService = require("../user/notificationService");
-const logActivity = require("../../utils/activityLogger");
-const { getIO } = require("../../config/socket");
+const notificationService = require("../notificationService");
+const logActivity = require("../../../utils/activityLogger");
+const { getIO } = require("../../../config/socket");
 
 const createMoodEntry = async (userId, data, meta = {}) => {
   const moodLabelId = data.moodLabelId;
@@ -72,7 +72,7 @@ const createMoodEntry = async (userId, data, meta = {}) => {
   try {
     // kirim ke AI/mock
     const aiResult = await aiAnalysisService.analyzeMood({
-      moodLabel: moodLabel.name,
+      // moodLabel: moodLabel.name,
       feelingText,
     });
 
@@ -80,7 +80,6 @@ const createMoodEntry = async (userId, data, meta = {}) => {
     const updatedMoodEntry = await prisma.moodEntry.update({
       where: { id: moodEntry.id },
       data: {
-        moodScore: aiResult.moodScore ?? null,
         analysisStatus: "success",
         analysisError: null,
       },
@@ -97,11 +96,24 @@ const createMoodEntry = async (userId, data, meta = {}) => {
         modelName: aiResult.modelName ?? null,
       },
     });
+
+    const confidencePercentage = Math.round(
+      (aiResult.confidenceScore ?? 0) * 100,
+    );
+
+    const moodJarNotificationMessage = `
+${moodLabel.emoji} Mood pilihanmu: ${moodLabel.name}
+
+AI membaca mood kamu sebagai: ${aiResult.predictedLabel}
+Confidence Score: ${confidencePercentage}%
+
+${aiResult.supportMessage}
+`;
     await notificationService.sendAllNotifications({
       userId,
       type: "mood_jar_result",
       title: "Mood Jar berhasil dianalisis",
-      message: aiResult.supportMessage,
+      message: moodJarNotificationMessage,
       relatedMoodEntryId: moodEntry.id,
     });
 

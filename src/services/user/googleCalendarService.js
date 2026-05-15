@@ -1,7 +1,7 @@
 const { google } = require("googleapis");
 const prisma = require("../../config/prisma");
 const logActivity = require("../../utils/activityLogger");
-const socialBatteryService = require("./socialBatteryService");
+const socialBatteryService = require("./socialBattery/socialBatteryService");
 const notificationService = require("./notificationService");
 
 function createOAuthClient() {

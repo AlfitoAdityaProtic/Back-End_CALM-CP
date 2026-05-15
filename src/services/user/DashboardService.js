@@ -1,7 +1,7 @@
 const prisma = require("../../config/prisma");
-const socialBatteryService = require("./socialBatteryService");
+const socialBatteryService = require("./socialBattery/socialBatteryService");
 const googleCalendarService = require("./googleCalendarService");
-const moodEntryService = require("./moodEntryService");
+const moodEntryService = require("./moodJar/moodEntryService");
 
 function getStartAndEndOfDay(date = new Date()) {
   const start = new Date(date);

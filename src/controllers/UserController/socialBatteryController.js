@@ -1,5 +1,4 @@
-const socialBatteryService = require("../../services/user/socialBatteryService");
-const socialBatteryAiService = require("../../services/user/ai-socialBatteryService");
+const socialBatteryService = require("../../services/user/socialBattery/socialBatteryService");
 
 async function getTodaySocialBattery(req, res) {
   try {
@@ -26,7 +25,7 @@ async function generateAiInsight(req, res) {
     const userId = req.user.userId;
     const { date } = req.body || {};
 
-    const result = await socialBatteryAiService.generateSocialBatteryAiInsight(
+    const result = await socialBatteryService.generateSocialBatteryAiInsight(
       userId,
       date ? new Date(date) : new Date(),
       req.ip,

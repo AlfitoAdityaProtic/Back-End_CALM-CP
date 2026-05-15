@@ -1,4 +1,4 @@
-const MoodLabelService = require("../../services/user/moodLabelServices");
+const MoodLabelService = require("../../services/user/moodJar/moodLabelServices");
 
 const getActiveMoodLabels = async (req, res) => {
   try {

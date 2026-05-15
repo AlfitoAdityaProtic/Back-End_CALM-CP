@@ -1,6 +1,8 @@
-const prisma = require("../../config/prisma");
-const logActivity = require("../../utils/activityLogger");
-const { getIO } = require("../../config/socket");
+const prisma = require("../../../config/prisma");
+const logActivity = require("../../../utils/activityLogger");
+const { getIO } = require("../../../config/socket");
+const notificationService = require("../notificationService");
+const aiSocialBatteryService = require("./ai-socialBatteryService");
 
 function getStartAndEndOfDay(date) {
   const targetDate = new Date(date);
@@ -33,21 +35,19 @@ function calculateSocialIntensityScore(events, totalDurationMinutes) {
     const attendeeCount = event.attendeeCount || 0;
     const duration = calculateDurationMinutes(event.startTime, event.endTime);
 
-    if (attendeeCount >= 5) {
+    if (attendeeCount >= 5 && attendeeCount < 10) {
       attendeeScore += 5;
+    } else if (attendeeCount >= 10) {
+      attendeeScore += 15;
     }
 
-    if (attendeeCount >= 10) {
-      attendeeScore += 10;
-    }
-
-    if (duration >= 120) {
-      longEventPenalty += 8;
+    if (duration >= 180) {
+      longEventPenalty += 5;
     }
   }
 
-  const eventScore = totalEvents * 5;
-  const durationScore = totalDurationHours * 4;
+  const eventScore = totalEvents * 3;
+  const durationScore = totalDurationHours * 3;
 
   return Math.min(
     100,
@@ -91,6 +91,7 @@ async function getBatteryStatusByScore(batteryScore) {
   return batteryStatus;
 }
 
+// fungsi untuk menghitung social battery
 async function calculateSocialBatteryByDate(
   userId,
   date = new Date(),
@@ -260,9 +261,139 @@ async function getSocialBatteryHistory(userId, page = 1, limit = 7) {
   };
 }
 
+async function generateSocialBatteryAiInsight(
+  userId,
+  date = new Date(),
+  ipAddress = null,
+  userAgent = null,
+) {
+  if (!userId) {
+    throw new Error("User ID is required");
+  }
+
+  const { startOfDay, endOfDay } = getStartAndEndOfDay(date);
+
+  const socialBatteryLog = await prisma.socialBatteryLog.findUnique({
+    where: {
+      userId_date: {
+        userId,
+        date: startOfDay,
+      },
+    },
+    include: {
+      batteryStatus: true,
+    },
+  });
+
+  if (!socialBatteryLog) {
+    throw new Error(
+      "Social battery Tidak Ditemukan, Tolong Sinkronkan Kalender Anda terlebih dahulu.",
+    );
+  }
+
+  const events = await prisma.calendarEvent.findMany({
+    where: {
+      userId,
+      AND: [
+        {
+          startTime: {
+            lte: endOfDay,
+          },
+        },
+        {
+          endTime: {
+            gte: startOfDay,
+          },
+        },
+      ],
+    },
+    orderBy: {
+      startTime: "asc",
+    },
+  });
+
+  const aiPayload = {
+    totalEvents: socialBatteryLog.totalEvents,
+    totalDurationMinutes: socialBatteryLog.totalDurationMinutes,
+    socialIntensityScore: socialBatteryLog.socialIntensityScore,
+    batteryScore: socialBatteryLog.batteryScore,
+    batteryStatus: socialBatteryLog.batteryStatus.name,
+    events: events.map((event) => ({
+      title: event.title,
+      startTime: event.startTime,
+      endTime: event.endTime,
+      attendeeCount: Math.max(event.attendeeCount ?? 1, 1),
+      location: event.location,
+      eventType: event.eventType,
+    })),
+  };
+
+  const aiResult =
+    await aiSocialBatteryService.generateSocialBatteryInsight(aiPayload);
+
+  const { aiInsight, aiScoreExplanation, recoverySuggestion, aiModelName } =
+    aiResult;
+
+  const updatedLog = await prisma.socialBatteryLog.update({
+    where: {
+      userId_date: {
+        userId,
+        date: startOfDay,
+      },
+    },
+    data: {
+      aiInsight,
+      aiScoreExplanation,
+      recoverySuggestion,
+      aiModelName,
+    },
+    include: {
+      batteryStatus: true,
+    },
+  });
+
+  await logActivity({
+    userId,
+    action: "SOCIAL_BATTERY_AI_INSIGHT_GENERATE",
+    description: `User generate AI insight social battery untuk tanggal ${startOfDay
+      .toISOString()
+      .slice(0, 10)}`,
+    ipAddress,
+    userAgent,
+  });
+
+  getIO().to("admin_dashboard").emit("dashboard_updated", {
+    type: "CREATE_AI_INSIGHT_SOCIAL_BATTERY_LOG",
+  });
+
+  const socialBatteryNotificationMessage = `🌸 Hai, CALM buddy!
+
+Social Battery-mu sudah dicek nih 😌
+${aiInsight}🌟
+
+${aiScoreExplanation} 💛
+
+Tips dari CALM:
+${recoverySuggestion}😊`;
+
+  await notificationService.sendAllNotifications({
+    userId,
+    type: "social_battery_result",
+    title: "Social Battery kamu sudah dianalisis",
+    message: socialBatteryNotificationMessage,
+    relatedSocialBatteryLogId: updatedLog.id,
+  });
+
+  return {
+    socialBattery: updatedLog,
+    events: aiPayload.events,
+  };
+}
+
 module.exports = {
   calculateSocialBatteryByDate,
   getTodaySocialBattery,
   getSocialBatteryByDate,
   getSocialBatteryHistory,
+  generateSocialBatteryAiInsight,
 };

@@ -35,9 +35,11 @@ function calculateSocialIntensityScore(events, totalDurationMinutes) {
     const attendeeCount = event.attendeeCount || 0;
     const duration = calculateDurationMinutes(event.startTime, event.endTime);
 
-    if (attendeeCount >= 5 && attendeeCount < 10) {
+    if (attendeeCount >= 5) {
       attendeeScore += 5;
-    } else if (attendeeCount >= 10) {
+    }
+
+    if (attendeeCount >= 10) {
       attendeeScore += 15;
     }
 

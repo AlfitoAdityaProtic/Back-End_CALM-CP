@@ -97,6 +97,13 @@ const createMoodEntry = async (userId, data, meta = {}) => {
       },
     });
 
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        onboardingCompleted: true,
+      },
+    });
+
     const confidencePercentage = Math.round(
       (aiResult.confidenceScore ?? 0) * 100,
     );
@@ -132,6 +139,7 @@ ${aiResult.supportMessage}
     return {
       moodEntry: updatedMoodEntry,
       encouragementResult,
+      onboardingCompleted: true,
     };
   } catch (err) {
     // kalau AI gagal

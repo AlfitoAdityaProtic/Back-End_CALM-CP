@@ -1,6 +1,7 @@
 const prisma = require("../../config/prisma");
 const logActivity = require("../../utils/activityLogger");
 const bcrypt = require("bcrypt");
+const supabase = require("../../config/supabase");
 
 const getUserProfile = async (req, res) => {
   try {
@@ -46,8 +47,13 @@ const getUserProfile = async (req, res) => {
 
 const updateProfile = async (req, res) => {
   try {
-    const { fullName, username, phoneNumber, profilePhotoUrl } = req.body;
+    const { fullName, username, email, phoneNumber, profilePhotoUrl } =
+      req.body;
     const userId = req.user.userId;
+
+    console.log("BODY:", req.body);
+    console.log("FILE:", req.file);
+    const normalizedEmail = email?.toLowerCase().trim();
 
     // cek username kalau diubah
     if (username) {
@@ -62,11 +68,50 @@ const updateProfile = async (req, res) => {
       }
     }
 
+    if (normalizedEmail) {
+      const existingEmail = await prisma.user.findUnique({
+        where: { email: normalizedEmail },
+      });
+
+      if (existingEmail && existingEmail.id !== userId) {
+        return res.status(409).json({
+          message: "Email sudah digunakan oleh akun lain",
+        });
+      }
+    }
+
     const data = {};
     if (fullName !== undefined) data.fullName = fullName;
     if (username !== undefined) data.username = username;
+    if (email !== undefined) data.email = normalizedEmail;
     if (phoneNumber !== undefined) data.phoneNumber = phoneNumber;
     if (profilePhotoUrl !== undefined) data.profilePhotoUrl = profilePhotoUrl;
+
+    if (req.file) {
+      const fileExt = req.file.originalname.split(".").pop();
+      const fileName = `${userId}-${Date.now()}.${fileExt}`;
+      const filePath = `profiles/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from(process.env.SUPABASE_PROFILE_BUCKET)
+        .upload(filePath, req.file.buffer, {
+          contentType: req.file.mimetype,
+          upsert: true,
+        });
+
+      if (uploadError) {
+        return res.status(500).json({
+          message: "Gagal upload foto profile",
+          error: uploadError.message,
+        });
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from(process.env.SUPABASE_PROFILE_BUCKET)
+        .getPublicUrl(filePath);
+
+      data.profilePhotoUrl = publicUrlData.publicUrl;
+    }
 
     const updatedUser = await prisma.user.update({
       where: { id: userId },

@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const authMiddleware = require("../middlewares/authMiddleware");
+const upload = require("../middlewares/uploadMiddleware");
 const {
   getUserProfile,
   updateProfile,
@@ -10,7 +11,12 @@ const {
 const { updatePasswordLimiter } = require("../middlewares/rateLimiter");
 
 router.get("/profile", authMiddleware, getUserProfile);
-router.patch("/profile", authMiddleware, updateProfile);
+router.patch(
+  "/profile",
+  authMiddleware,
+  upload.single("profilePhoto"),
+  updateProfile,
+);
 router.patch(
   "/profile/password",
   authMiddleware,

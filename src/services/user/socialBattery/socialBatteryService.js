@@ -368,15 +368,14 @@ async function generateSocialBatteryAiInsight(
     type: "CREATE_AI_INSIGHT_SOCIAL_BATTERY_LOG",
   });
 
-  const socialBatteryNotificationMessage = `🌸 Hai, CALM buddy!
-
-Social Battery-mu sudah dicek nih 😌
-${aiInsight}🌟
-
-${aiScoreExplanation} 💛
-
-Tips dari CALM:
-${recoverySuggestion}😊`;
+  const socialBatteryNotificationMessage =
+    // `🌸 Hai, CALM buddy!<br><br>` +
+    `Social Battery-mu sudah dicek nih 😌<br>` +
+    `${aiInsight} 🌟<br><br>` +
+    `${aiScoreExplanation} 💛<br><br>` +
+    `Tips dari CALM:<br>` +
+    `${recoverySuggestion} 😊<br><br>` +
+    `<i>Insight ini dianalisis menggunakan model AI: ${aiModelName}</i>`;
 
   await notificationService.sendAllNotifications({
     userId,

@@ -239,6 +239,24 @@ const getUserNotifications = async (userId) => {
   });
 };
 
+const getNotificationById = async (userId, notificationId) => {
+  const notification = await prisma.notification.findFirst({
+    where: {
+      id: notificationId,
+      userId,
+      channel: "in_app",
+    },
+  });
+
+  if (!notification) {
+    const error = new Error("Notifikasi tidak ditemukan");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  return notification;
+};
+
 const getUnreadNotificationCount = async (userId) => {
   return prisma.notification.count({
     where: {
@@ -282,6 +300,7 @@ module.exports = {
   sendWhatsappNotification,
   sendAllNotifications,
   getUserNotifications,
+  getNotificationById,
   getUnreadNotificationCount,
   markNotificationAsRead,
   markAllNotificationsAsRead,

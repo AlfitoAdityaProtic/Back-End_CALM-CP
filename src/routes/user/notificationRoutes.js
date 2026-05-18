@@ -10,6 +10,8 @@ router.get(
   authMiddleware,
   notificationController.getUnreadCount,
 );
+router.get("/:id", authMiddleware, notificationController.getNotificationById);
+
 router.patch(
   "/read-all",
   authMiddleware,

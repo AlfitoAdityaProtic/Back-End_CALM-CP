@@ -72,7 +72,6 @@ const createMoodEntry = async (userId, data, meta = {}) => {
   try {
     // kirim ke AI/mock
     const aiResult = await aiAnalysisService.analyzeMood({
-      // moodLabel: moodLabel.name,
       feelingText,
     });
 

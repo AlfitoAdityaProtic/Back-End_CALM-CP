@@ -84,7 +84,7 @@ const googleCallback = async (req, res) => {
       user = await prisma.user.update({
         where: { id: user.id },
         data: {
-          authProvider: "google",
+          // authProvider: "google",
           isEmailVerified: true,
         },
       });
@@ -152,12 +152,24 @@ const exchangeGoogleCode = async (req, res) => {
       },
       include: {
         user: {
+          // select: {
+          //   id: true,
+          //   email: true,
+          //   role: true,
+          //   isActive: true,
+          //   onboardingCompleted: true,
+          // },
           select: {
             id: true,
             email: true,
+            username: true,
+            fullName: true,
+            profilePhotoUrl: true,
+            authProvider: true,
             role: true,
             isActive: true,
             onboardingCompleted: true,
+            createdAt: true,
           },
         },
       },
@@ -186,11 +198,22 @@ const exchangeGoogleCode = async (req, res) => {
       message: "Login Google berhasil",
       accessToken,
       refreshToken: oauthCode.refreshToken,
+      // data: {
+      //   id: oauthCode.user.id,
+      //   email: oauthCode.user.email,
+      //   role: oauthCode.user.role,
+      //   onboardingCompleted: oauthCode.user.onboardingCompleted,
+      // },
       data: {
         id: oauthCode.user.id,
         email: oauthCode.user.email,
+        username: oauthCode.user.username,
+        fullName: oauthCode.user.fullName,
+        profilePhotoUrl: oauthCode.user.profilePhotoUrl,
+        authProvider: oauthCode.user.authProvider,
         role: oauthCode.user.role,
         onboardingCompleted: oauthCode.user.onboardingCompleted,
+        createdAt: oauthCode.user.createdAt,
       },
     });
   } catch (error) {

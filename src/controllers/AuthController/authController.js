@@ -305,6 +305,7 @@ const refreshAccessToken = async (req, res) => {
 
     if (!refreshToken) {
       return res.status(400).json({
+        code: "REFRESH_TOKEN_REQUIRED",
         message: "Refresh token wajib diisi",
       });
     }
@@ -317,6 +318,7 @@ const refreshAccessToken = async (req, res) => {
             id: true,
             email: true,
             role: true,
+            isActive: true,
           },
         },
       },
@@ -324,7 +326,15 @@ const refreshAccessToken = async (req, res) => {
 
     if (!savedRefreshToken) {
       return res.status(401).json({
+        code: "INVALID_REFRESH_TOKEN",
         message: "Refresh token tidak valid",
+      });
+    }
+
+    if (!savedRefreshToken.user?.isActive) {
+      return res.status(403).json({
+        code: "ACCOUNT_DISABLED",
+        message: "Akun anda telah dinonaktifkan",
       });
     }
 
@@ -334,6 +344,7 @@ const refreshAccessToken = async (req, res) => {
       });
 
       return res.status(401).json({
+        code: "REFRESH_TOKEN_EXPIRED",
         message: "Refresh token expired",
       });
     }
@@ -348,6 +359,7 @@ const refreshAccessToken = async (req, res) => {
     console.error("REFRESH TOKEN ERROR:", error);
 
     return res.status(500).json({
+      code: "INTERNAL_SERVER_ERROR",
       message: "Terjadi kesalahan pada server",
     });
   }

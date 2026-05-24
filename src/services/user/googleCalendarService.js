@@ -125,47 +125,25 @@ async function syncGoogleCalendarEvents(
     .filter((event) => event.id)
     .map((event) => event.id);
 
-  // let deletedCount = 0;
-
-  // if (googleEventIds.length > 0) {
-  //   const deletedResult = await prisma.calendarEvent.deleteMany({
-  //     where: {
-  //       userId,
-  //       googleAccountId: googleAccount.id,
-  //       googleEventId: {
-  //         notIn: googleEventIds,
-  //       },
-  //       startTime: {
-  //         gte: timeMin,
-  //         lte: timeMax,
-  //       },
-  //     },
-  //   });
-
-  //   deletedCount = deletedResult.count;
-  // }
   let deletedCount = 0;
 
-  const deleteWhere = {
-    userId,
-    googleAccountId: googleAccount.id,
-    startTime: {
-      gte: timeMin,
-      lte: timeMax,
-    },
-  };
-
   if (googleEventIds.length > 0) {
-    deleteWhere.googleEventId = {
-      notIn: googleEventIds,
-    };
+    const deletedResult = await prisma.calendarEvent.deleteMany({
+      where: {
+        userId,
+        googleAccountId: googleAccount.id,
+        googleEventId: {
+          notIn: googleEventIds,
+        },
+        startTime: {
+          gte: timeMin,
+          lte: timeMax,
+        },
+      },
+    });
+
+    deletedCount = deletedResult.count;
   }
-
-  const deletedResult = await prisma.calendarEvent.deleteMany({
-    where: deleteWhere,
-  });
-
-  deletedCount = deletedResult.count;
 
   const today = new Date();
 
@@ -179,7 +157,7 @@ async function syncGoogleCalendarEvents(
     ipAddress,
     userAgent,
   });
-  
+
   await notificationService.createInAppNotification({
     userId,
     type: "system",

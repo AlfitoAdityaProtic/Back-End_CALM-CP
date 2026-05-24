@@ -17,6 +17,17 @@ async function syncGoogleCalendar(req, res) {
     });
   } catch (error) {
     console.error("syncGoogleCalendar error:", error);
+
+    const googleError =
+      error?.response?.data?.error || error?.cause?.message || error?.message;
+
+    if (googleError === "invalid_grant") {
+      return res.status(409).json({
+        success: false,
+        code: "GOOGLE_TOKEN_EXPIRED",
+        message: "Google Calendar authorization expired. Please reconnect.",
+      });
+    }
     return res.status(500).json({
       success: false,
       message: "Failed to sync Google Calendar",

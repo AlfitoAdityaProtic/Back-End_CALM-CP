@@ -48,7 +48,7 @@ function calculateSocialIntensityScore(events, totalDurationMinutes) {
     }
   }
 
-  const eventScore = totalEvents * 3;
+  const eventScore = totalEvents * 1.5;
   const durationScore = totalDurationHours * 3;
 
   return Math.min(

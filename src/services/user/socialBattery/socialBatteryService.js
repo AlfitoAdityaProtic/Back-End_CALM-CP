@@ -5,7 +5,15 @@ const notificationService = require("../notificationService");
 const aiSocialBatteryService = require("./ai-socialBatteryService");
 
 function getStartAndEndOfDay(date) {
-  const targetDate = new Date(date);
+  let targetDate;
+
+  // Kalau date string format "YYYY-MM-DD" dari frontend
+  if (typeof date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    const [year, month, day] = date.split("-").map(Number);
+    targetDate = new Date(year, month - 1, day); // parse sebagai local time
+  } else {
+    targetDate = new Date(date);
+  }
 
   const startOfDay = new Date(targetDate);
   startOfDay.setHours(0, 0, 0, 0);

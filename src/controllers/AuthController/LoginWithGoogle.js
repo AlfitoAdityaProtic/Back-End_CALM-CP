@@ -157,6 +157,7 @@ const exchangeGoogleCode = async (req, res) => {
             email: true,
             role: true,
             isActive: true,
+            onboardingCompleted: true,
           },
         },
       },
@@ -189,6 +190,7 @@ const exchangeGoogleCode = async (req, res) => {
         id: oauthCode.user.id,
         email: oauthCode.user.email,
         role: oauthCode.user.role,
+        onboardingCompleted: oauthCode.user.onboardingCompleted,
       },
     });
   } catch (error) {

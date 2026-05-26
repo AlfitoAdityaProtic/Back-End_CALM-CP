@@ -28,7 +28,7 @@ const {
 router.post("/register", registerLimiter, register);
 router.post("/login", loginLimiter, login);
 router.post("/refresh-token", refreshTokenLimiter, refreshAccessToken);
-router.post("/logout", authMiddleware, logout);
+router.post("/logout", logout);
 
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);

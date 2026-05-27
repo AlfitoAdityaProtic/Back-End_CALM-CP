@@ -58,7 +58,9 @@ async function getDashboardUser(userId) {
     user,
     greeting: {
       title: `Hi, ${user.fullName || user.username || "user"} !`,
-      subtitle: "Let's help you stay on the top of your social battery",
+      // subtitle: "Let's help you stay on the top of your social battery",
+      subtitle:
+        "Biar Interaksi jalan terus dan mental tetap aman, yuk pantau social battery-mu sekarang!",
     },
     socialBattery: formatSocialBattery(socialBattery),
     dailyEvents: dailyEvents.map(formatDailyEvent),

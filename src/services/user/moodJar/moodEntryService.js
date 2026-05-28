@@ -107,19 +107,26 @@ const createMoodEntry = async (userId, data, meta = {}) => {
       (aiResult.confidenceScore ?? 0) * 100,
     );
 
-    const moodJarNotificationMessage = `
-${moodLabel.emoji} Mood pilihanmu: ${moodLabel.name}
+    // Plain text → WA & in-app (sudah benar, pertahankan)
+    const moodJarNotificationMessage =
+      `${moodLabel.emoji} Mood pilihanmu: ${moodLabel.name}\n\n` +
+      `AI membaca mood kamu sebagai: ${aiResult.predictedLabel}\n` +
+      `Confidence Score: ${confidencePercentage}%\n\n` +
+      `${aiResult.supportMessage}`;
 
-AI membaca mood kamu sebagai: ${aiResult.predictedLabel}
-Confidence Score: ${confidencePercentage}%
+    // HTML → email (tambah ini)
+    const moodJarNotificationHtml =
+      `${moodLabel.emoji} Mood pilihanmu: <strong>${moodLabel.name}</strong><br><br>` +
+      `AI membaca mood kamu sebagai: <strong>${aiResult.predictedLabel}</strong><br>` +
+      `Confidence Score: <strong>${confidencePercentage}%</strong><br><br>` +
+      `${aiResult.supportMessage}`;
 
-${aiResult.supportMessage}
-`;
     await notificationService.sendAllNotifications({
       userId,
       type: "mood_jar_result",
       title: "Mood Jar berhasil dianalisis",
-      message: moodJarNotificationMessage,
+      message: moodJarNotificationMessage, // ← WA & in-app
+      htmlMessage: moodJarNotificationHtml, // ← email
       relatedMoodEntryId: moodEntry.id,
     });
 

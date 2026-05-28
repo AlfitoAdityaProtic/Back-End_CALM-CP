@@ -377,7 +377,14 @@ async function generateSocialBatteryAiInsight(
   });
 
   const socialBatteryNotificationMessage =
-    // `🌸 Hai, CALM buddy!<br><br>` +
+    `Social Battery-mu sudah dicek nih 😌\n` +
+    `${aiInsight} 🌟\n\n` +
+    `${aiScoreExplanation} 💛\n\n` +
+    `Tips dari CALM:\n` +
+    `${recoverySuggestion} 😊\n\n` +
+    `Insight ini dianalisis menggunakan model AI: ${aiModelName}`;
+
+  const socialBatteryNotificationHtml =
     `Social Battery-mu sudah dicek nih 😌<br>` +
     `${aiInsight} 🌟<br><br>` +
     `${aiScoreExplanation} 💛<br><br>` +
@@ -389,7 +396,8 @@ async function generateSocialBatteryAiInsight(
     userId,
     type: "social_battery_result",
     title: "Social Battery kamu sudah dianalisis",
-    message: socialBatteryNotificationMessage,
+    message: socialBatteryNotificationMessage, // ← WA & in-app
+    htmlMessage: socialBatteryNotificationHtml, // ← email
     relatedSocialBatteryLogId: updatedLog.id,
   });
 

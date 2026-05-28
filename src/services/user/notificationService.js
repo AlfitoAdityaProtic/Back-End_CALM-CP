@@ -40,6 +40,7 @@ const sendEmailNotification = async ({
   type,
   title,
   message,
+  htmlMessage = null,
   relatedMoodEntryId = null,
   relatedSocialBatteryLogId = null,
 }) => {
@@ -78,7 +79,7 @@ const sendEmailNotification = async ({
         <div style="font-family: Arial, sans-serif; line-height: 1.6;">
           <h2>${title}</h2>
           <p>Halo ${user.fullName || "teman"},</p>
-          <p>${message}</p>
+          <p>${htmlMessage ?? message}</p> 
           <p>Semoga harimu lebih ringan hari ini.</p>
         </div>
       `,
@@ -202,6 +203,7 @@ const sendAllNotifications = async ({
   type,
   title,
   message,
+  htmlMessage = null,
   relatedMoodEntryId = null,
   relatedSocialBatteryLogId = null,
 }) => {
@@ -216,7 +218,7 @@ const sendAllNotifications = async ({
 
   const inAppNotification = await createInAppNotification(payload);
 
-  sendEmailNotification(payload).catch((error) => {
+  sendEmailNotification({ ...payload, htmlMessage }).catch((error) => {
     console.error("Gagal mengirim email notification:", error.message);
   });
 

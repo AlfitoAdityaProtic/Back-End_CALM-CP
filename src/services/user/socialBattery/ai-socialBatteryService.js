@@ -12,13 +12,15 @@ async function generateSocialBatteryInsight(aiPayload) {
       },
     );
 
-    const result = response.data;
+    const result = Array.isArray(response.data)
+      ? response.data[0]
+      : response.data;
 
     return {
       aiInsight: result.aiInsight,
       aiScoreExplanation: result.aiScoreExplanation,
       recoverySuggestion: result.recoverySuggestion,
-      aiModelName: result.aiModelName || "social-battery-ai-v1",
+      aiModelName: result.aiModelName || "social-battery-ai-v3",
     };
   } catch (error) {
     console.error(

@@ -16,6 +16,11 @@ async function generateSocialBatteryInsight(aiPayload) {
       ? response.data[0]
       : response.data;
 
+    console.log("AI RAW RESPONSE:", response.data);
+    console.log("AI RESULT:", result);
+    console.log("RECOVERY TYPE:", typeof result.recoverySuggestion);
+    console.log("RECOVERY VALUE:", result.recoverySuggestion);
+
     return {
       aiInsight: result.aiInsight,
       aiScoreExplanation: result.aiScoreExplanation,

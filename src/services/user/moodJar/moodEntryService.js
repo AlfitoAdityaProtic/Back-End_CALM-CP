@@ -148,12 +148,18 @@ const createMoodEntry = async (userId, data, meta = {}) => {
       onboardingCompleted: true,
     };
   } catch (err) {
-    // kalau AI gagal
-    await prisma.moodEntry.update({
+    const failedMoodEntry = await prisma.moodEntry.update({
       where: { id: moodEntry.id },
       data: {
         analysisStatus: "failed",
         analysisError: err.message,
+      },
+    });
+    // kalau AI gagal
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        onboardingCompleted: true,
       },
     });
 
@@ -168,7 +174,16 @@ const createMoodEntry = async (userId, data, meta = {}) => {
       type: "MOOD_ENTRY_FAILED",
     });
 
-    throw err;
+    return {
+      moodEntry: failedMoodEntry,
+      encouragementResult: null,
+      onboardingCompleted: true,
+      aiFailed: true,
+      message:
+        "Mood entry berhasil disimpan, namun analisis AI gagal. Silakan coba lagi nanti.",
+    };
+
+    // throw err;
   }
 };
 

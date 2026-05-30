@@ -26,9 +26,29 @@ const analyzeMood = async ({ feelingText }) => {
           : `${result.modelName?.classification || "-"}; ${result.modelName?.generation || "-"}`,
     };
   } catch (error) {
-    console.error("AI Mood Analysis Error Status:", error.response?.status);
+    const status = error.response?.status;
+
+    console.error("AI Mood Analysis Error Status:", status);
     console.error("AI Mood Analysis Error Data:", error.response?.data);
     console.error("AI Mood Analysis Error Message:", error.message);
+    if (status === 503) {
+      throw new Error(
+        "Layanan AI sedang sibuk atau Tidak Tersedia. Silakan coba lagi nanti.",
+      );
+    }
+
+    if (status === 422 || status === 400) {
+      throw new Error(
+        "Input tidak valid untuk analisis mood. Silakan periksa kembali inputmu.",
+      );
+    }
+
+    if (error.code === "ECONNABORTED") {
+      throw new Error(
+        "Permintaan analisis mood memakan waktu terlalu lama. Silakan coba lagi nanti.",
+      );
+    }
+
     throw new Error("Gagal Menganalisis Mood. Silakan coba lagi nanti.");
   }
 };

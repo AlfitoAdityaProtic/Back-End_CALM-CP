@@ -101,6 +101,18 @@ async function getBatteryStatusByScore(batteryScore) {
   return batteryStatus;
 }
 
+async function getActiveGoogleAccount(userId) {
+  const googleAccount = await prisma.googleAccount.findUnique({
+    where: { userId },
+  });
+
+  if (!googleAccount) {
+    throw new Error("Google account not connected");
+  }
+
+  return googleAccount;
+}
+
 // fungsi untuk menghitung social battery
 async function calculateSocialBatteryByDate(
   userId,
@@ -113,10 +125,12 @@ async function calculateSocialBatteryByDate(
   }
 
   const { startOfDay, endOfDay } = getStartAndEndOfDay(date);
+  const googleAccount = await getActiveGoogleAccount(userId);
 
   const events = await prisma.calendarEvent.findMany({
     where: {
       userId,
+      googleAccountId: googleAccount.id,
       AND: [
         {
           startTime: {
@@ -282,6 +296,7 @@ async function generateSocialBatteryAiInsight(
   }
 
   const { startOfDay, endOfDay } = getStartAndEndOfDay(date);
+  const googleAccount = await getActiveGoogleAccount(userId);
 
   const socialBatteryLog = await prisma.socialBatteryLog.findUnique({
     where: {
@@ -304,6 +319,7 @@ async function generateSocialBatteryAiInsight(
   const events = await prisma.calendarEvent.findMany({
     where: {
       userId,
+      googleAccountId: googleAccount.id,
       AND: [
         {
           startTime: {

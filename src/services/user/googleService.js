@@ -72,7 +72,7 @@ async function saveGoogleAccount({
     error.code = "GOOGLE_ALREADY_CONNECTED";
     throw error;
   }
-  
+
   const existing = await prisma.googleAccount.findUnique({
     where: { userId },
   });
@@ -84,16 +84,50 @@ async function saveGoogleAccount({
   let actionDescription;
 
   if (existing) {
-    result = await prisma.googleAccount.update({
-      where: { userId },
-      data: {
-        googleEmail: profile.email,
-        googleSub: profile.id,
-        accessToken: tokens.access_token || existing.accessToken,
-        refreshToken: tokens.refresh_token || existing.refreshToken,
-        tokenExpiry,
-      },
-    });
+    const isDifferentGoogleAccount = existing.googleSub !== profile.id;
+
+    if (isDifferentGoogleAccount) {
+      await prisma.$transaction([
+        prisma.calendarEvent.deleteMany({
+          where: {
+            userId,
+            googleAccountId: existing.id,
+          },
+        }),
+
+        prisma.socialBatteryLog.deleteMany({
+          where: {
+            userId,
+          },
+        }),
+
+        prisma.googleAccount.update({
+          where: { userId },
+          data: {
+            googleEmail: profile.email,
+            googleSub: profile.id,
+            accessToken: tokens.access_token || existing.accessToken,
+            refreshToken: tokens.refresh_token || existing.refreshToken,
+            tokenExpiry,
+          },
+        }),
+      ]);
+
+      result = await prisma.googleAccount.findUnique({
+        where: { userId },
+      });
+    } else {
+      result = await prisma.googleAccount.update({
+        where: { userId },
+        data: {
+          googleEmail: profile.email,
+          googleSub: profile.id,
+          accessToken: tokens.access_token || existing.accessToken,
+          refreshToken: tokens.refresh_token || existing.refreshToken,
+          tokenExpiry,
+        },
+      });
+    }
 
     actionType = "GOOGLE_ACCOUNT_UPDATED";
     actionDescription = `User memperbarui koneksi Google account (${profile.email})`;
@@ -195,9 +229,24 @@ async function disconnectGoogleAccount(
     return null;
   }
 
-  await prisma.googleAccount.delete({
-    where: { userId },
-  });
+  await prisma.$transaction([
+    prisma.calendarEvent.deleteMany({
+      where: {
+        userId,
+        googleAccountId: googleAccount.id,
+      },
+    }),
+
+    prisma.socialBatteryLog.deleteMany({
+      where: {
+        userId,
+      },
+    }),
+
+    prisma.googleAccount.delete({
+      where: { userId },
+    }),
+  ]);
 
   await logActivity({
     userId,

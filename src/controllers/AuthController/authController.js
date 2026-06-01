@@ -327,7 +327,7 @@ const refreshAccessToken = async (req, res) => {
     if (!savedRefreshToken) {
       return res.status(401).json({
         code: "INVALID_REFRESH_TOKEN",
-        message: "Refresh token tidak valid",
+        message: "Refresh token tidak valid, silahkan refresh halaman anda!",
       });
     }
 

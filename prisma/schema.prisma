@@ -131,7 +131,7 @@ model GoogleAccount {
 model CalendarEvent {
   id              String   @id @default(uuid())
   userId          String   @map("user_id")
-  googleAccountId String?  @map("google_account_id")
+  googleAccountId String  @map("google_account_id")
   googleEventId   String   @map("google_event_id")
   title           String
   description     String?
@@ -145,9 +145,9 @@ model CalendarEvent {
   updatedAt       DateTime @updatedAt @map("updated_at")
 
   user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  googleAccount GoogleAccount? @relation(fields: [googleAccountId], references: [id], onDelete: SetNull)
+  googleAccount GoogleAccount  @relation(fields: [googleAccountId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, googleEventId])
+  @@unique([googleAccountId, googleEventId])
   @@index([userId])
   @@index([googleAccountId])
   @@map("calendar_events")

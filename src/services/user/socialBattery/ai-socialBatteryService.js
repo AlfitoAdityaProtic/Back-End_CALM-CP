@@ -12,9 +12,10 @@ async function generateSocialBatteryInsight(aiPayload) {
       },
     );
 
-    const result = Array.isArray(response.data)
-      ? response.data[0]
-      : response.data;
+    // const result = Array.isArray(response.data)
+    //   ? response.data[0]
+    //   : response.data;
+    const result = response.data;
 
     console.log("AI RAW RESPONSE:", response.data);
     console.log("AI RESULT:", result);

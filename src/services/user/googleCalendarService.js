@@ -95,8 +95,8 @@ async function syncGoogleCalendarEvents(
 
     const existingEvent = await prisma.calendarEvent.findUnique({
       where: {
-        userId_googleEventId: {
-          userId,
+        googleAccountId_googleEventId: {
+          googleAccountId: googleAccount.id,
           googleEventId: event.id,
         },
       },
@@ -105,8 +105,8 @@ async function syncGoogleCalendarEvents(
     if (existingEvent) {
       await prisma.calendarEvent.update({
         where: {
-          userId_googleEventId: {
-            userId,
+          googleAccountId_googleEventId: {
+            googleAccountId: googleAccount.id,
             googleEventId: event.id,
           },
         },
@@ -175,16 +175,24 @@ async function syncGoogleCalendarEvents(
 }
 
 async function getCalendarEvents(userId) {
+  const googleAccount = await getGoogleAccountByUserId(userId);
+
   return prisma.calendarEvent.findMany({
-    where: { userId },
+    where: {
+      userId,
+      googleAccountId: googleAccount.id,
+    },
     orderBy: { startTime: "asc" },
   });
 }
 
 async function getCalendarEventsByRange(userId, start, end) {
+  const googleAccount = await getGoogleAccountByUserId(userId);
+
   return prisma.calendarEvent.findMany({
     where: {
       userId,
+      googleAccountId: googleAccount.id,
       startTime: {
         gte: new Date(start),
       },

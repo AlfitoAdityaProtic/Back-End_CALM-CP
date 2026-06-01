@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const prisma = require("../config/prisma"); 
+const prisma = require("../config/prisma");
 
 const authMiddleware = async (req, res, next) => {
   try {
@@ -56,7 +56,7 @@ const authMiddleware = async (req, res, next) => {
   } catch (error) {
     return res.status(401).json({
       code: "INVALID_OR_EXPIRED_TOKEN",
-      message: "Token tidak valid atau expired",
+      message: "Token tidak valid atau expired, silahkan Refresh halaman anda!",
     });
   }
 };

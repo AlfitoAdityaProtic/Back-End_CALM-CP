@@ -47,13 +47,14 @@ const getUserProfile = async (req, res) => {
 
 const updateProfile = async (req, res) => {
   try {
-    const { fullName, username, email, phoneNumber, profilePhotoUrl } =
+    // const { fullName, username, email, phoneNumber, profilePhotoUrl } =
+    const { fullName, username, phoneNumber, profilePhotoUrl } =
       req.body;
     const userId = req.user.userId;
 
-    console.log("BODY:", req.body);
-    console.log("FILE:", req.file);
-    const normalizedEmail = email?.toLowerCase().trim();
+    // console.log("BODY:", req.body);
+    // console.log("FILE:", req.file);
+    // const normalizedEmail = email?.toLowerCase().trim();
 
     // cek username kalau diubah
     if (username) {
@@ -68,22 +69,22 @@ const updateProfile = async (req, res) => {
       }
     }
 
-    if (normalizedEmail) {
-      const existingEmail = await prisma.user.findUnique({
-        where: { email: normalizedEmail },
-      });
+    // if (normalizedEmail) {
+    //   const existingEmail = await prisma.user.findUnique({
+    //     where: { email: normalizedEmail },
+    //   });
 
-      if (existingEmail && existingEmail.id !== userId) {
-        return res.status(409).json({
-          message: "Email sudah digunakan oleh akun lain",
-        });
-      }
-    }
+    //   if (existingEmail && existingEmail.id !== userId) {
+    //     return res.status(409).json({
+    //       message: "Email sudah digunakan oleh akun lain",
+    //     });
+    //   }
+    // }
 
     const data = {};
     if (fullName !== undefined) data.fullName = fullName;
     if (username !== undefined) data.username = username;
-    if (email !== undefined) data.email = normalizedEmail;
+    // if (email !== undefined) data.email = normalizedEmail;
     if (phoneNumber !== undefined) data.phoneNumber = phoneNumber;
     if (profilePhotoUrl !== undefined) data.profilePhotoUrl = profilePhotoUrl;
 
@@ -143,6 +144,12 @@ const updateProfile = async (req, res) => {
     });
   } catch (error) {
     console.error("UPDATE PROFILE ERROR:", error);
+
+    if (error.code === "P2002") {
+      return res.status(409).json({
+        message: "Username sudah dipakai",
+      });
+    }
 
     return res.status(500).json({
       message: "Terjadi kesalahan pada server",

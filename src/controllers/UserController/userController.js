@@ -48,8 +48,7 @@ const getUserProfile = async (req, res) => {
 const updateProfile = async (req, res) => {
   try {
     // const { fullName, username, email, phoneNumber, profilePhotoUrl } =
-    const { fullName, username, phoneNumber, profilePhotoUrl } =
-      req.body;
+    const { fullName, username, phoneNumber, profilePhotoUrl } = req.body;
     const userId = req.user.userId;
 
     // console.log("BODY:", req.body);
@@ -83,7 +82,7 @@ const updateProfile = async (req, res) => {
 
     const data = {};
     if (fullName !== undefined) data.fullName = fullName;
-    if (username !== undefined) data.username = username;
+    if (username !== undefined && username !== "") data.username = username;
     // if (email !== undefined) data.email = normalizedEmail;
     if (phoneNumber !== undefined) data.phoneNumber = phoneNumber;
     if (profilePhotoUrl !== undefined) data.profilePhotoUrl = profilePhotoUrl;

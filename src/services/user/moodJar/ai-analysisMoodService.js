@@ -4,8 +4,8 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const analyzeMoodWithRetry = async (
   { feelingText },
-  retries = 3,
-  delayMs = 3000,
+  retries = 2,
+  delayMs = 1500,
 ) => {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
@@ -14,7 +14,7 @@ const analyzeMoodWithRetry = async (
         { text: feelingText },
         {
           headers: { "Content-Type": "application/json" },
-          timeout: 60000,
+          timeout: 30000,
         },
       );
 

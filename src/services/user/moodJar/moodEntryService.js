@@ -59,6 +59,13 @@ const createMoodEntry = async (userId, data, meta = {}) => {
     throw error;
   }
 
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      onboardingCompleted: true,
+    },
+  });
+
   // simpan input user dulu
   const moodEntry = await prisma.moodEntry.create({
     data: {
@@ -69,6 +76,37 @@ const createMoodEntry = async (userId, data, meta = {}) => {
     },
   });
 
+  processMoodAnalysis({
+    userId,
+    moodEntry,
+    moodLabel,
+    feelingText,
+    ipAddress,
+    userAgent,
+  }).catch((err) => {
+    console.error(
+      `Gagal memproses mood entry dengan ID ${moodEntry.id}: ${err.message}`,
+    );
+  });
+
+  return {
+    moodEntry,
+    onboardingCompleted: true,
+    encouragementResult: null,
+    analysisStatus: "pending",
+    message:
+      "Mood entry berhasil disimpan. Analisis AI sedang diproses, silakan tunggu beberapa saat.",
+  };
+};
+
+const processMoodAnalysis = async ({
+  userId,
+  moodEntry,
+  moodLabel,
+  feelingText,
+  ipAddress,
+  userAgent,
+}) => {
   try {
     // kirim ke AI/mock
     const aiResult = await aiAnalysisService.analyzeMood({
@@ -96,12 +134,12 @@ const createMoodEntry = async (userId, data, meta = {}) => {
       },
     });
 
-    await prisma.user.update({
-      where: { id: userId },
-      data: {
-        onboardingCompleted: true,
-      },
-    });
+    // await prisma.user.update({
+    //   where: { id: userId },
+    //   data: {
+    //     onboardingCompleted: true,
+    //   },
+    // });
 
     const confidencePercentage = Math.round(
       (aiResult.confidenceScore ?? 0) * 100,
@@ -156,12 +194,12 @@ const createMoodEntry = async (userId, data, meta = {}) => {
       },
     });
     // kalau AI gagal
-    await prisma.user.update({
-      where: { id: userId },
-      data: {
-        onboardingCompleted: true,
-      },
-    });
+    // await prisma.user.update({
+    //   where: { id: userId },
+    //   data: {
+    //     onboardingCompleted: true,
+    //   },
+    // });
 
     await logActivity({
       userId,

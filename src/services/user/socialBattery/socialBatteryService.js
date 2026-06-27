@@ -48,7 +48,7 @@ function calculateSocialIntensityScore(events, totalDurationMinutes) {
     }
 
     if (attendeeCount >= 10) {
-      attendeeScore += 15;
+      attendeeScore += 10;
     }
 
     if (duration >= 180) {
@@ -57,7 +57,7 @@ function calculateSocialIntensityScore(events, totalDurationMinutes) {
   }
 
   const eventScore = totalEvents * 1.5;
-  const durationScore = totalDurationHours * 3;
+  const durationScore = totalDurationHours * 1;
 
   return Math.min(
     100,

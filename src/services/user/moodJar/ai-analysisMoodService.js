@@ -9,12 +9,17 @@ const analyzeMoodWithRetry = async (
 ) => {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
+      // Debugging 6 juli 2026 :
+      // console.log("AI URL:", process.env.MOOD_ANALYSIS_AI_URL);
+      // console.log("Payload:", { text: feelingText });
+      // Debugging End
+
       const response = await axios.post(
         process.env.MOOD_ANALYSIS_AI_URL,
         { text: feelingText },
         {
           headers: { "Content-Type": "application/json" },
-          timeout: 30000,
+          timeout: 120000,
         },
       );
 
@@ -40,6 +45,15 @@ const analyzeMoodWithRetry = async (
       console.warn(
         `Attempt ${attempt} failed — status: ${status}, code: ${error.code}`,
       );
+      // Debugging 6 juli 2026 :
+      // console.error("=== AI ERROR ===");
+      // console.error("status :", error.response?.status);
+      // console.error("headers:", error.response?.headers);
+      // console.error("data   :", error.response?.data);
+      // console.error("code   :", error.code);
+      // console.error("msg    :", error.message);
+      // console.error("================");
+      // Debugging End
 
       if (isRetryable && attempt < retries) {
         const wait = delayMs * attempt; // 3s, 6s, 9s
